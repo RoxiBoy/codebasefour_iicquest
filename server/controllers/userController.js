@@ -6,12 +6,12 @@ const bcrypt = require('bcrypt');
 class UserController {
   static async signup(req, res) {
     try {
-      const { name, email, password, role, auth_provider, profile } = req.body;
+      const { name, email, password, role, profile } = req.body;
 
-      if (!name || !email || !role || !auth_provider) {
+      if (!name || !email || !role) {
         return res.status(400).json({
           success: false,
-          message: 'Name, email, role, and auth_provider are required'
+          message: 'Name, email, role are required'
         });
       }
 
@@ -19,20 +19,6 @@ class UserController {
         return res.status(400).json({
           success: false,
           message: 'Role must be one of: learner, mentor, provider'
-        });
-      }
-
-      if (!['google', 'email'].includes(auth_provider)) {
-        return res.status(400).json({
-          success: false,
-          message: 'Auth provider must be one of: google, email'
-        });
-      }
-
-      if (auth_provider === 'email' && !password) {
-        return res.status(400).json({
-          success: false,
-          message: 'Password is required for email authentication'
         });
       }
 
@@ -48,9 +34,8 @@ class UserController {
         id: uuidv4(),
         name,
         email,
-        password: auth_provider === 'email' ? password : undefined,
+        password,
         role,
-        auth_provider,
         profile: profile || {}
       });
 
@@ -98,7 +83,7 @@ class UserController {
         });
       }
 
-      const user = await User.findOne({ email, auth_provider: 'email' });
+      const user = await User.findOne({ email });
       if (!user) {
         return res.status(401).json({
           success: false,
@@ -106,8 +91,7 @@ class UserController {
         });
       }
 
-      const isMatch = await user.comparePassword(password);
-      if (!isMatch) {
+      if ( password !== user.password) {
         return res.status(401).json({
           success: false,
           message: 'Invalid password'
@@ -130,80 +114,6 @@ class UserController {
         }
       });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        message: 'Internal server error',
-        error: error.message
-      });
-    }
-  }
-
-  static async createUser(req, res) {
-    // Same as signup but without token generation for backward compatibility
-    try {
-      const { name, email, password, role, auth_provider, profile } = req.body;
-
-      if (!name || !email || !role || !auth_provider) {
-        return res.status(400).json({
-          success: false,
-          message: 'Name, email, role, and auth_provider are required'
-        });
-      }
-
-      if (!['learner', 'mentor', 'provider'].includes(role)) {
-        return res.status(400).json({
-          success: false,
-          message: 'Role must be one of: learner, mentor, provider'
-        });
-      }
-
-      if (!['google', 'email'].includes(auth_provider)) {
-        return res.status(400).json({
-          success: false,
-          message: 'Auth provider must be one of: google, email'
-        });
-      }
-
-      if (auth_provider === 'email' && !password) {
-        return res.status(400).json({
-          success: false,
-          message: 'Password is required for email authentication'
-        });
-      }
-
-      const existingUser = await User.findOne({ email });
-      if (existingUser) {
-        return res.status(409).json({
-          success: false,
-          message: 'User with this email already exists'
-        });
-      }
-
-      const newUser = new User({
-        id: uuidv4(),
-        name,
-        email,
-        password: auth_provider === 'email' ? password : undefined,
-        role,
-        auth_provider,
-        profile: profile || {}
-      });
-
-      const savedUser = await newUser.save();
-
-      res.status(201).json({
-        success: true,
-        message: 'User created successfully',
-        data: savedUser
-      });
-    } catch (error) {
-      if (error.code === 11000) {
-        return res.status(409).json({
-          success: false,
-          message: 'User with this email or ID already exists'
-        });
-      }
-      
       res.status(500).json({
         success: false,
         message: 'Internal server error',

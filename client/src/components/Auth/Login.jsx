@@ -19,7 +19,7 @@ export default function Login() {
 
     try {
       await login(email, password)
-      navigate("/")
+      window.location.href = "/"  
     } catch (err) {
       setError("Invalid email or password")
     } finally {

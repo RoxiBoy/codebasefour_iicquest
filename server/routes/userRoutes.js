@@ -4,7 +4,6 @@ const UserController = require('../controllers/userController'); // Adjust path 
 
 router.post('/signup', UserController.signup);
 router.post('/login', UserController.login);
-router.post('/', UserController.createUser);
 router.get('/', UserController.getAllUsers);
 router.get('/search', UserController.searchUsers);
 router.get('/role/:role', UserController.getUsersByRole);

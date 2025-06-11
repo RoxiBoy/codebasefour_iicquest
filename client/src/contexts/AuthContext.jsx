@@ -28,7 +28,7 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
-      const response = await fetch("/api/users/login", {
+      const response = await fetch("http://localhost:5000/api/user/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -41,8 +41,9 @@ export function AuthProvider({ children }) {
       }
 
       const data = await response.json()
-      localStorage.setItem("token", data.token)
-      localStorage.setItem("user", JSON.stringify(data.user))
+      console.log(data)
+      localStorage.setItem("token", data.data.token)
+      localStorage.setItem("user", JSON.stringify(data.data.user))
       setUser(data.user)
     } catch (error) {
       throw error
@@ -51,7 +52,7 @@ export function AuthProvider({ children }) {
 
   const signup = async (userData) => {
     try {
-      const response = await fetch("/api/users/signup", {
+      const response = await fetch("http://localhost:5000/api/user/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

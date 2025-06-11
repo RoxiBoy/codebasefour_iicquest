@@ -35,4 +35,6 @@ app.use((err, req, res, next) => {
   });
 });
 
+app.listen(5000, () => { console.log("Server up and running")})
+
 module.exports = app;

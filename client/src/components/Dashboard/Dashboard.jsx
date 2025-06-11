@@ -25,7 +25,7 @@ export default function Dashboard() {
         })
 
         // Check if skill vector exists
-        const skillResponse = await fetch(`/api/skill-vectors/${user?.id}`, {
+        const skillResponse = await fetch(`/api/skillVectors/${user?.id}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -47,7 +47,6 @@ export default function Dashboard() {
     }
   }, [user?.id])
 
-  // Transform skill data for radar chart
   const skillChartData = assessmentData.skillVector
     ? [
         {
