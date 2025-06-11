@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const BehaviorVectorController = require('../controllers/BehaviorVectorController'); // Adjust path as needed
+const BehaviorVectorController = require('../controllers/behaviorVectorController'); // Adjust path as needed
 
 router.post('/', BehaviorVectorController.createOrUpdateBehaviorVector);
 router.get('/', BehaviorVectorController.getAllBehaviorVectors);

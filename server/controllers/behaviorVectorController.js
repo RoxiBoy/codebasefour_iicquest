@@ -79,6 +79,7 @@ class BehaviorVectorController {
         error: error.message
       });
     }
+
   }
 
   static async getBehaviorVectorByUserId(req, res) {
@@ -255,6 +256,98 @@ class BehaviorVectorController {
             dominant_trait: targetBehavior.dominant_trait
           },
           similar_users: similarUsers
+        }
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+        error: error.message
+      });
+    }
+  }
+
+ 
+  static async getBehaviorAnalytics(req, res) {
+    try {
+      const analytics = await BehaviorVector.aggregate([
+        {
+          $group: {
+            _id: null,
+            total_profiles: { $sum: 1 },
+            cognitive_style_distribution: {
+              $push: {
+                $cond: [
+                  { $eq: ['$cognitive_style', 'analytical'] },
+                  'analytical',
+                  'holistic'
+                ]
+              }
+            },
+            learning_mode_distribution: {
+              $push: {
+                $cond: [
+                  { $eq: ['$learning_mode', 'active'] },
+                  'active',
+                  'reflective'
+                ]
+              }
+            },
+            communication_distribution: {
+              $push: {
+                $cond: [
+                  { $eq: ['$communication', 'direct'] },
+                  'direct',
+                  'nuanced'
+                ]
+              }
+            },
+            motivation_distribution: {
+              $push: {
+                $cond: [
+                  { $eq: ['$motivation', 'intrinsic'] },
+                  'intrinsic',
+                  'extrinsic'
+                ]
+              }
+            },
+            dominant_trait_distribution: {
+              $push: '$dominant_trait'
+            }
+          }
+        }
+      ]);
+
+      if (!analytics.length) {
+        return res.status(200).json({
+          success: true,
+          data: {
+            total_profiles: 0,
+            distributions: {}
+          }
+        });
+      }
+
+      const data = analytics[0];
+      const processDistribution = (array) => {
+        const counts = {};
+        array.forEach(item => {
+          counts[item] = (counts[item] || 0) + 1;
+        });
+        return counts;
+      };
+
+      res.status(200).json({
+        success: true,
+        data: {
+          total_profiles: data.total_profiles,
+          distributions: {
+            cognitive_style: processDistribution(data.cognitive_style_distribution),
+            learning_mode: processDistribution(data.learning_mode_distribution),
+            communication: processDistribution(data.communication_distribution),
+            motivation: processDistribution(data.motivation_distribution),
+            dominant_trait: processDistribution(data.dominant_trait_distribution)
+          }
         }
       });
     } catch (error) {

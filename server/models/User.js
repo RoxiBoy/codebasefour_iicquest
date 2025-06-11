@@ -8,7 +8,6 @@ const UserSchema = new Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String }, // Required only for email auth_provider
   role: { type: String, enum: ['learner', 'mentor', 'provider'], required: true },
-  auth_provider: { type: String, enum: ['google', 'email'], required: true },
   profile: {
     bio: { type: String, default: '' },
     education: { type: String, default: '' },

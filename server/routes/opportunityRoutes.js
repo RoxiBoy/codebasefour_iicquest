@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const OpportunityController = require('../controllers/OpportunityController'); // Adjust path as needed
+const OpportunityController = require('../controllers/opportunityController'); // Adjust path as needed
 
 router.post('/', OpportunityController.createOpportunity);
 router.get('/', OpportunityController.getAllOpportunities);
