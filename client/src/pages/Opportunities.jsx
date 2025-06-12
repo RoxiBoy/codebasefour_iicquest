@@ -34,11 +34,10 @@ const Opportunities = () => {
     myOpportunities: false,
   })
 
-  // Add debouncing to prevent excessive API calls
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       fetchOpportunities()
-    }, 300) // 300ms debounce
+    }, 300) 
 
     return () => clearTimeout(timeoutId)
   }, [filters])
@@ -67,7 +66,6 @@ const Opportunities = () => {
       })
       toast.success("Application submitted successfully!")
 
-      // Update the local state immediately to reflect the application
       setOpportunities((prev) =>
         prev.map((opp) =>
           opp._id === opportunityId
@@ -79,7 +77,6 @@ const Opportunities = () => {
         ),
       )
 
-      // Also refresh from server to get the complete updated data
       fetchOpportunities()
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to apply")
@@ -103,7 +100,6 @@ const Opportunities = () => {
     })
   }
 
-  // Prevent form submission on Enter key
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       e.preventDefault()

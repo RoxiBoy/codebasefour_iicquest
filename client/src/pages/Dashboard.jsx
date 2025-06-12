@@ -52,13 +52,11 @@ const Dashboard = () => {
 
       setRecentActivity(activityRes.data.activities || [])
 
-      // Calculate percentage changes
       const currentStats = statsRes.data
       const previousStats = historicalRes.data
 
       const calculatePercentageChange = (current, previous) => {
         if (!previous || previous === 0) {
-          // If previous is 0, and current is greater than 0, it's a 100% increase
           if (current > 0) return { change: 100, period: "this month" }
           return { change: 0, period: "this month" }
         }
@@ -69,7 +67,6 @@ const Dashboard = () => {
         }
       }
 
-      // Calculate changes for each stat
       const connectionsChange = calculatePercentageChange(currentStats.connections || 0, previousStats.connections || 0)
 
       const opportunitiesChange = calculatePercentageChange(
@@ -84,7 +81,7 @@ const Dashboard = () => {
 
       const growthScoreChange = calculatePercentageChange(currentStats.growthScore || 0, previousStats.growthScore || 0)
 
-      // Set calculated changes and achievements to state
+      
       setStats({
         ...currentStats,
         connectionsChange,
@@ -94,13 +91,13 @@ const Dashboard = () => {
         currentAchievement: achievementsRes.data?.currentAchievement || null,
       })
 
-      // Fetch mentor-specific data
+      
       if (user.role === "mentor") {
         const opportunitiesRes = await axios.get("/api/opportunities/my-opportunities")
         setMyOpportunities(opportunitiesRes.data.opportunities || [])
       }
 
-      // Fetch received connection requests for all users
+     
       const requestsRes = await axios.get("/api/users/requests/received")
       setReceivedRequests(requestsRes.data.requests || [])
 
@@ -119,10 +116,10 @@ const Dashboard = () => {
       await axios.post(`/api/users/requests/${requestId}/accept`)
       toast.success("Connection request accepted!")
 
-      // Update the local state immediately to reflect the change
+      
       setReceivedRequests((prev) => prev.filter((request) => request._id !== requestId))
 
-      // Increment the connections count in the stats
+      
       setStats((prev) => ({
         ...prev,
         connections: (prev.connections || 0) + 1,
@@ -136,7 +133,7 @@ const Dashboard = () => {
         },
       }))
 
-      // Refresh all data to ensure everything is up to date
+      
       fetchDashboardData()
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to accept request")
@@ -148,22 +145,22 @@ const Dashboard = () => {
       await axios.post(`/api/users/requests/${requestId}/reject`)
       toast.success("Connection request rejected.")
 
-      // Update the local state immediately
+    
       setReceivedRequests((prev) => prev.filter((request) => request._id !== requestId))
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to reject request")
     }
   }
 
-  // Helper function to calculate new percentage change when stats are updated locally
+  
   const calculateNewPercentageChange = (newValue, oldValue, currentChange) => {
-    // If we don't have historical data, estimate based on current change
+  
     if (oldValue === 0) return 100
 
-    // Calculate the approximate previous period value based on current change
+    
     const estimatedPrevPeriodValue = oldValue / (1 + currentChange / 100)
 
-    // Calculate new change percentage
+    
     const newChange = ((newValue - estimatedPrevPeriodValue) / estimatedPrevPeriodValue) * 100
     return Math.round(newChange)
   }

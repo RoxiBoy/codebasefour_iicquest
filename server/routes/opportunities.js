@@ -5,7 +5,6 @@ import { authenticateToken } from "../middleware/auth.js"
 
 const router = express.Router()
 
-// Get opportunities (with filtering and matching)
 router.get("/", authenticateToken, async (req, res) => {
   try {
     const { type, location, experience, skills, search, myOpportunities, page = 1, limit = 10 } = req.query
@@ -35,7 +34,6 @@ router.get("/", authenticateToken, async (req, res) => {
       .limit(limit * 1)
       .skip((page - 1) * limit)
 
-    // Calculate match scores for learners
     const user = await User.findById(userId)
     if (user.role === "learner") {
       for (const opportunity of opportunities) {
@@ -55,14 +53,12 @@ router.get("/", authenticateToken, async (req, res) => {
   }
 })
 
-// Get mentor's opportunities (specific endpoint for dashboard)
 router.get("/my-opportunities", authenticateToken, async (req, res) => {
   try {
     const opportunities = await Opportunity.find({ createdBy: req.user.userId })
       .populate("createdBy", "firstName lastName avatar")
       .sort({ createdAt: -1 })
 
-    // Add application counts
     const opportunitiesWithCounts = opportunities.map((opp) => ({
       ...opp.toObject(),
       applicationCount: opp.applications.length,
@@ -75,7 +71,6 @@ router.get("/my-opportunities", authenticateToken, async (req, res) => {
   }
 })
 
-// Create new opportunity (mentors only)
 router.post("/", authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.userId)
@@ -97,7 +92,6 @@ router.post("/", authenticateToken, async (req, res) => {
   }
 })
 
-// Apply to opportunity
 router.post("/:id/apply", authenticateToken, async (req, res) => {
   try {
     const { coverLetter } = req.body
@@ -109,14 +103,12 @@ router.post("/:id/apply", authenticateToken, async (req, res) => {
       return res.status(404).json({ message: "Opportunity not found" })
     }
 
-    // Check if already applied
     const existingApplication = opportunity.applications.find((app) => app.userId.toString() === userId)
 
     if (existingApplication) {
       return res.status(400).json({ message: "Already applied to this opportunity" })
     }
 
-    // Calculate match score
     const user = await User.findById(userId)
     const matchScore = calculateMatchScore(user.skillDNA, opportunity.requiredSkills)
 
@@ -136,7 +128,6 @@ router.post("/:id/apply", authenticateToken, async (req, res) => {
   }
 })
 
-// Get applications for an opportunity (mentor only)
 router.get("/:id/applications", authenticateToken, async (req, res) => {
   try {
     const opportunityId = req.params.id
@@ -149,7 +140,6 @@ router.get("/:id/applications", authenticateToken, async (req, res) => {
       return res.status(404).json({ message: "Opportunity not found" })
     }
 
-    // Check if user is the creator
     if (opportunity.createdBy._id.toString() !== req.user.userId) {
       return res.status(403).json({ message: "Access denied" })
     }
@@ -169,7 +159,6 @@ router.get("/:id/applications", authenticateToken, async (req, res) => {
   }
 })
 
-// Get single opportunity (for editing)
 router.get("/:id", authenticateToken, async (req, res) => {
   try {
     const opportunity = await Opportunity.findById(req.params.id)
@@ -186,7 +175,6 @@ router.get("/:id", authenticateToken, async (req, res) => {
   }
 })
 
-// Update opportunity
 router.put("/:id", authenticateToken, async (req, res) => {
   try {
     const opportunity = await Opportunity.findById(req.params.id)
@@ -195,8 +183,7 @@ router.put("/:id", authenticateToken, async (req, res) => {
       return res.status(404).json({ message: "Opportunity not found" })
     }
 
-    // Check if user owns this opportunity
-    if (opportunity.createdBy.toString() !== req.user.userId) {
+   if (opportunity.createdBy.toString() !== req.user.userId) {
       return res.status(403).json({ message: "Access denied" })
     }
 
@@ -211,7 +198,6 @@ router.put("/:id", authenticateToken, async (req, res) => {
   }
 })
 
-// Update application status
 router.put("/:id/applications/:applicationId", authenticateToken, async (req, res) => {
   try {
     const { status } = req.body
@@ -223,12 +209,10 @@ router.put("/:id/applications/:applicationId", authenticateToken, async (req, re
       return res.status(404).json({ message: "Opportunity not found" })
     }
 
-    // Check if user owns this opportunity
     if (opportunity.createdBy.toString() !== req.user.userId) {
       return res.status(403).json({ message: "Access denied" })
     }
 
-    // Find and update the application
     const application = opportunity.applications.id(applicationId)
     if (!application) {
       return res.status(404).json({ message: "Application not found" })
@@ -243,7 +227,6 @@ router.put("/:id/applications/:applicationId", authenticateToken, async (req, re
   }
 })
 
-// Helper function to calculate match score
 function calculateMatchScore(userSkills, requiredSkills) {
   if (!requiredSkills || requiredSkills.length === 0) return 0
 

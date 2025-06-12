@@ -1,11 +1,10 @@
 import express from "express"
 import mongoose from "mongoose"
 import { authenticateToken } from "../middleware/auth.js"
-import User from "../models/User.js" // Import User model
+import User from "../models/User.js" 
 
 const router = express.Router()
 
-// Chat message schema
 const messageSchema = new mongoose.Schema({
   roomId: { type: String, required: true },
   senderId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
@@ -17,7 +16,6 @@ const messageSchema = new mongoose.Schema({
 
 const Message = mongoose.model("Message", messageSchema)
 
-// Get chat history
 router.get("/:roomId", authenticateToken, async (req, res) => {
   try {
     const { roomId } = req.params
@@ -36,7 +34,6 @@ router.get("/:roomId", authenticateToken, async (req, res) => {
   }
 })
 
-// Send message
 router.post("/send", authenticateToken, async (req, res) => {
   try {
     const { roomId, receiverId, message } = req.body
@@ -50,7 +47,6 @@ router.post("/send", authenticateToken, async (req, res) => {
     })
 
     await newMessage.save()
-    // Populate sender and receiver details for the response
     await newMessage.populate("senderId", "firstName lastName avatar")
     await newMessage.populate("receiverId", "firstName lastName avatar")
 
@@ -60,12 +56,10 @@ router.post("/send", authenticateToken, async (req, res) => {
   }
 })
 
-// Get user's chat rooms (now only showing connections, not recent chats)
 router.get("/rooms/list", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId
 
-    // Fetch all connections of the current user
     const currentUser = await User.findById(userId).populate("connections", "firstName lastName avatar role")
 
     if (!currentUser) {
@@ -74,7 +68,6 @@ router.get("/rooms/list", authenticateToken, async (req, res) => {
 
     const connections = currentUser.connections || []
 
-    // For each connection, find the last message and unread count
     const rooms = await Promise.all(
       connections.map(async (connection) => {
         const roomId = [userId, connection._id.toString()].sort().join("-")
@@ -89,7 +82,7 @@ router.get("/rooms/list", authenticateToken, async (req, res) => {
 
         return {
           _id: roomId,
-          otherUser: connection, // The connected user is the "otherUser"
+          otherUser: connection, 
           lastMessage: lastMessage,
           unreadCount: unreadCount,
         }

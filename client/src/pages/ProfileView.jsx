@@ -14,7 +14,7 @@ const ProfileView = () => {
   const { user: currentUser } = useAuth()
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [connectionStatus, setConnectionStatus] = useState(null) // not_connected, pending_sent, pending_received, connected
+  const [connectionStatus, setConnectionStatus] = useState(null) 
   const isOwner = currentUser?._id === userId
 
   useEffect(() => {
@@ -37,7 +37,7 @@ const ProfileView = () => {
     try {
       const response = await axios.post(`/api/users/connect/${userId}`)
       toast.success(response.data.message)
-      setConnectionStatus(response.data.status) // Should be 'pending_sent'
+      setConnectionStatus(response.data.status) 
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to send connection request")
     }
@@ -45,12 +45,7 @@ const ProfileView = () => {
 
   const handleAcceptRequest = async () => {
     try {
-      // Find the request ID from the current user's received requests
-      // This would typically be done by fetching received requests and finding the one from this userId
-      // For simplicity, assuming the backend handles it with just the target userId for now,
-      // or we'd need to fetch all requests first.
-      // A more robust solution would involve fetching received requests and passing the requestId.
-      // For now, we'll rely on the backend to find the correct pending request.
+      
       const requestsRes = await axios.get("/api/users/requests/received")
       const requestToAccept = requestsRes.data.requests.find((req) => req.sender._id === userId)
 

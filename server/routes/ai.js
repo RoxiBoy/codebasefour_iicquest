@@ -29,7 +29,6 @@ router.post("/analyze-assessment", authenticateToken, async (req, res) => {
     const aiResponse = await response.json();
     console.log("AI Response:", aiResponse);
 
-    // Calculate average score per label
     const labelSums = {};
     const labelCounts = {};
 
@@ -50,11 +49,10 @@ router.post("/analyze-assessment", authenticateToken, async (req, res) => {
       averages[label] = labelSums[label] / labelCounts[label];
     }
 
-    // Store averages in skillsAssessed
     assessment.skillsAssessed = Object.entries(averages).map(([skillName, score]) => ({
       skillName,
       score,
-      confidence: null, // no confidence in your AI response, set null or omit
+      confidence: null, 
     }));
 
     assessment.isProcessed = true;

@@ -11,7 +11,7 @@ const skillDNASchema = new mongoose.Schema({
     {
       score: Number,
       date: Date,
-      timeTaken: Number, // in seconds
+      timeTaken: Number,
       assessmentType: String,
     },
   ],
@@ -36,7 +36,6 @@ const behavioralProfileSchema = new mongoose.Schema({
   ],
 })
 
-// New schema for user-added skills (separate from assessment-based skillDNA)
 const userSkillSchema = new mongoose.Schema({
   name: { type: String, required: true },
   level: { type: Number, min: 0, max: 100, required: true },
@@ -51,29 +50,24 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true },
     role: { type: String, enum: ["learner", "mentor"], required: true },
 
-    // Profile Information
     firstName: String,
     lastName: String,
     avatar: String,
     bio: String,
     location: String,
-    experience: Number, // years
+    experience: Number, 
     education: String,
 
-    // User-added skills (for profile management)
     skills: [userSkillSchema],
 
-    // For Mentors
     expertise: [String],
     mentorRating: { type: Number, default: 0 },
     totalMentees: { type: Number, default: 0 },
     isVerified: { type: Boolean, default: false },
 
-    // Skill DNA and Behavioral Profile (assessment-based)
     skillDNA: [skillDNASchema],
     behavioralProfile: behavioralProfileSchema,
 
-    // Learning and Activity Data
     learningGoals: [String],
     preferredLearningStyle: String,
     activityLog: [
@@ -85,16 +79,13 @@ const userSchema = new mongoose.Schema(
       },
     ],
 
-    // Matching and Connections
     connections: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     blockedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 
-    // Assessment tracking
     lastBehavioralAssessment: Date,
     lastSkillAssessment: Date,
     assessmentStreak: { type: Number, default: 0 },
 
-    // Privacy and preferences
     isProfilePublic: { type: Boolean, default: true },
     notificationPreferences: {
       email: { type: Boolean, default: true },

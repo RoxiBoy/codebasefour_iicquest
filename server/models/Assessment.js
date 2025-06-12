@@ -3,12 +3,12 @@ import mongoose from "mongoose"
 const questionSchema = new mongoose.Schema({
   questionId: String,
   type: { type: String, enum: ["behavioral", "technical", "communication"] },
-  category: String, // math, reasoning, leadership, etc.
+  category: String, 
   question: String,
-  options: [String], // for multiple choice
-  correctAnswer: String, // for technical questions
+  options: [String], 
+  correctAnswer: String, 
   difficulty: { type: String, enum: ["easy", "medium", "hard"] },
-  timeLimit: Number, // in seconds
+  timeLimit: Number, 
   metadata: mongoose.Schema.Types.Mixed,
 })
 
@@ -16,7 +16,7 @@ const responseSchema = new mongoose.Schema({
   questionId: String,
   userResponse: String,
   isCorrect: Boolean,
-  timeTaken: Number, // in milliseconds
+  timeTaken: Number, 
   startTime: Date,
   endTime: Date,
   interactionData: {
@@ -39,22 +39,19 @@ const assessmentSchema = new mongoose.Schema(
     type: { type: String, enum: ["behavioral", "technical", "communication"], required: true },
     category: String,
 
-    // Assessment session data
+     
     sessionId: String,
     startTime: Date,
     endTime: Date,
-    totalDuration: Number, // in seconds
+    totalDuration: Number, 
 
-    // Questions and responses
     questions: [questionSchema],
     responses: [responseSchema],
 
-    // Scoring and analysis
     rawScore: Number,
     normalizedScore: Number,
     percentile: Number,
 
-    // AI Model Input Data
     aiAnalysisData: {
       responsePatterns: mongoose.Schema.Types.Mixed,
       timingAnalysis: mongoose.Schema.Types.Mixed,
@@ -62,7 +59,6 @@ const assessmentSchema = new mongoose.Schema(
       skillIndicators: mongoose.Schema.Types.Mixed,
     },
 
-    // Results
     skillsAssessed: [
       {
         skillName: String,
@@ -75,7 +71,6 @@ const assessmentSchema = new mongoose.Schema(
     areasForImprovement: [String],
     strengths: [String],
 
-    // Status
     status: { type: String, enum: ["in-progress", "completed", "abandoned"], default: "in-progress" },
     isProcessed: { type: Boolean, default: false },
   },

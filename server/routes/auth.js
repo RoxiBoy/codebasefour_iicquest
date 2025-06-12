@@ -4,18 +4,15 @@ import User from "../models/User.js"
 
 const router = express.Router()
 
-// Register
 router.post("/register", async (req, res) => {
   try {
     const { email, password, role, firstName, lastName } = req.body
 
-    // Check if user exists
     const existingUser = await User.findOne({ email })
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" })
     }
 
-    // Create new user
     const user = new User({
       email,
       password,
@@ -26,7 +23,6 @@ router.post("/register", async (req, res) => {
 
     await user.save()
 
-    // Generate token
     const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET || "fallback-secret", {
       expiresIn: "7d",
     })
@@ -47,24 +43,20 @@ router.post("/register", async (req, res) => {
   }
 })
 
-// Login
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body
 
-    // Find user
     const user = await User.findOne({ email })
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" })
     }
 
-    // Check password
     const isMatch = await user.comparePassword(password)
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid credentials" })
     }
 
-    // Generate token
     const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET || "fallback-secret", {
       expiresIn: "7d",
     })

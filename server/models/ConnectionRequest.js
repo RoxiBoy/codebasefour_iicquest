@@ -8,7 +8,6 @@ const ConnectionRequestSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now },
 })
 
-// Ensure unique pending requests between two users
 ConnectionRequestSchema.index(
   { sender: 1, receiver: 1 },
   { unique: true, partialFilterExpression: { status: "pending" } },
