@@ -20,6 +20,7 @@ import {
   ArrowUpRight,
   Zap,
   Star,
+  RefreshCw,
 } from "lucide-react"
 import SkillRadarChart from "../components/SkillRadarChart"
 import LoadingSpinner from "../components/LoadingSpinner"
@@ -32,6 +33,7 @@ const Dashboard = () => {
   const [myOpportunities, setMyOpportunities] = useState([])
   const [receivedRequests, setReceivedRequests] = useState([])
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
 
   useEffect(() => {
     fetchDashboardData()
@@ -39,13 +41,14 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const [statsRes, activityRes, historicalRes] = await Promise.all([
+      setRefreshing(true)
+      const [statsRes, activityRes, historicalRes, achievementsRes] = await Promise.all([
         axios.get("/api/users/stats"),
         axios.get("/api/users/activity"),
-        axios.get("/api/users/stats/historical"), // New endpoint for historical data
+        axios.get("/api/users/stats/historical"),
+        axios.get("/api/users/achievements/current"),
       ])
 
-      setStats(statsRes.data)
       setRecentActivity(activityRes.data.activities || [])
 
       // Calculate percentage changes
@@ -53,11 +56,15 @@ const Dashboard = () => {
       const previousStats = historicalRes.data
 
       const calculatePercentageChange = (current, previous) => {
-        if (!previous || previous === 0) return { change: 0, period: "this month" }
+        if (!previous || previous === 0) {
+          // If previous is 0, and current is greater than 0, it's a 100% increase
+          if (current > 0) return { change: 100, period: "this month" }
+          return { change: 0, period: "this month" }
+        }
         const change = ((current - previous) / previous) * 100
         return {
           change: Math.round(change),
-          period: historicalRes.data.period || "this month", // Period from API response
+          period: historicalRes.data.period || "this month",
         }
       }
 
@@ -76,13 +83,14 @@ const Dashboard = () => {
 
       const growthScoreChange = calculatePercentageChange(currentStats.growthScore || 0, previousStats.growthScore || 0)
 
-      // Set calculated changes to state
+      // Set calculated changes and achievements to state
       setStats({
         ...currentStats,
         connectionsChange,
         opportunitiesChange,
         applicationsChange,
         growthScoreChange,
+        currentAchievement: achievementsRes.data?.currentAchievement || null,
       })
 
       // Fetch mentor-specific data
@@ -96,9 +104,12 @@ const Dashboard = () => {
       setReceivedRequests(requestsRes.data.requests || [])
 
       setLoading(false)
+      setRefreshing(false)
     } catch (error) {
       console.error("Error fetching dashboard data:", error)
       setLoading(false)
+      setRefreshing(false)
+      toast.error("Failed to load dashboard data")
     }
   }
 
@@ -106,7 +117,26 @@ const Dashboard = () => {
     try {
       await axios.post(`/api/users/requests/${requestId}/accept`)
       toast.success("Connection request accepted!")
-      fetchDashboardData() // Refresh data
+
+      // Update the local state immediately to reflect the change
+      setReceivedRequests((prev) => prev.filter((request) => request._id !== requestId))
+
+      // Increment the connections count in the stats
+      setStats((prev) => ({
+        ...prev,
+        connections: (prev.connections || 0) + 1,
+        connectionsChange: {
+          ...prev.connectionsChange,
+          change: calculateNewPercentageChange(
+            (prev.connections || 0) + 1,
+            prev.connections || 0,
+            prev.connectionsChange?.change || 0,
+          ),
+        },
+      }))
+
+      // Refresh all data to ensure everything is up to date
+      fetchDashboardData()
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to accept request")
     }
@@ -116,10 +146,29 @@ const Dashboard = () => {
     try {
       await axios.post(`/api/users/requests/${requestId}/reject`)
       toast.success("Connection request rejected.")
-      fetchDashboardData() // Refresh data
+
+      // Update the local state immediately
+      setReceivedRequests((prev) => prev.filter((request) => request._id !== requestId))
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to reject request")
     }
+  }
+
+  // Helper function to calculate new percentage change when stats are updated locally
+  const calculateNewPercentageChange = (newValue, oldValue, currentChange) => {
+    // If we don't have historical data, estimate based on current change
+    if (oldValue === 0) return 100
+
+    // Calculate the approximate previous period value based on current change
+    const estimatedPrevPeriodValue = oldValue / (1 + currentChange / 100)
+
+    // Calculate new change percentage
+    const newChange = ((newValue - estimatedPrevPeriodValue) / estimatedPrevPeriodValue) * 100
+    return Math.round(newChange)
+  }
+
+  const handleRefreshData = () => {
+    fetchDashboardData()
   }
 
   if (loading) {
@@ -147,7 +196,15 @@ const Dashboard = () => {
                     : "Continue your learning journey and discover new opportunities"}
                 </p>
               </div>
-              <div className="hidden md:block">
+              <div className="hidden md:flex items-center space-x-4">
+                <button
+                  onClick={handleRefreshData}
+                  disabled={refreshing}
+                  className="p-3 bg-blue-100 hover:bg-blue-200 rounded-xl transition-all duration-200 text-blue-600"
+                  title="Refresh dashboard data"
+                >
+                  <RefreshCw className={`w-5 h-5 ${refreshing ? "animate-spin" : ""}`} />
+                </button>
                 <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-lg">
                   {user.firstName?.[0]}
                 </div>
@@ -513,7 +570,32 @@ const Dashboard = () => {
               </div>
             </div>
 
-      
+            {/* Achievement Badge - Only for Learners with Active Achievements */}
+            {user.role === "learner" && stats.currentAchievement && (
+              <div
+                className={`rounded-2xl shadow-lg p-6 text-white ${
+                  stats.currentAchievement.gradient || "bg-gradient-to-br from-yellow-400 via-orange-400 to-red-400"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <Award className="w-8 h-8" />
+                  {stats.currentAchievement.isNew && (
+                    <span className="text-sm font-medium bg-white/20 px-3 py-1 rounded-full">New!</span>
+                  )}
+                </div>
+                <h3 className="text-lg font-bold mb-2">{stats.currentAchievement.title}</h3>
+                <p className="text-sm opacity-90 mb-4">{stats.currentAchievement.description}</p>
+                <div className="w-full bg-white/20 rounded-full h-2">
+                  <div
+                    className="bg-white h-2 rounded-full transition-all duration-500"
+                    style={{ width: `${stats.currentAchievement.progress}%` }}
+                  ></div>
+                </div>
+                <p className="text-xs mt-2 opacity-75">
+                  {stats.currentAchievement.remainingCount} more to unlock "{stats.currentAchievement.nextAchievement}"
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>

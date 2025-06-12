@@ -21,6 +21,9 @@ import {
   Award,
   Clock,
   ArrowUpRight,
+  Code,
+  Plus,
+  Trash2,
 } from "lucide-react"
 import LoadingSpinner from "../components/LoadingSpinner"
 
@@ -33,6 +36,19 @@ const Profile = () => {
   const [connectionsList, setConnectionsList] = useState([])
   const [behavioralData, setBehavioralData] = useState([])
   const [skillData, setSkillData] = useState([])
+  const [newSkill, setNewSkill] = useState({ name: "", level: 50, category: "" })
+  const [skillCategories] = useState([
+    "Programming",
+    "Frontend",
+    "Backend",
+    "Database",
+    "DevOps",
+    "Mobile",
+    "Design",
+    "Management",
+    "Communication",
+    "Other",
+  ])
 
   useEffect(() => {
     fetchProfile()
@@ -45,6 +61,15 @@ const Profile = () => {
       const response = await axios.get("/api/users/profile")
       setProfile(response.data.user)
       setFormData(response.data.user)
+
+      // Initialize skills array if it doesn't exist
+      if (!response.data.user.skills) {
+        setFormData((prev) => ({
+          ...prev,
+          skills: [],
+        }))
+      }
+
       setLoading(false)
     } catch (error) {
       toast.error("Failed to load profile")
@@ -106,6 +131,53 @@ const Profile = () => {
     }))
   }
 
+  const handleNewSkillChange = (e) => {
+    const { name, value } = e.target
+    setNewSkill((prev) => ({
+      ...prev,
+      [name]: name === "level" ? Number.parseInt(value) : value,
+    }))
+  }
+
+  const addSkill = () => {
+    if (!newSkill.name || !newSkill.category) {
+      toast.error("Skill name and category are required")
+      return
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      skills: [
+        ...(prev.skills || []),
+        {
+          id: Date.now().toString(), // Temporary ID for frontend use
+          name: newSkill.name,
+          level: newSkill.level,
+          category: newSkill.category,
+        },
+      ],
+    }))
+
+    // Reset the new skill form
+    setNewSkill({ name: "", level: 50, category: "" })
+  }
+
+  const removeSkill = (skillId) => {
+    setFormData((prev) => ({
+      ...prev,
+      skills: prev.skills.filter((skill) => skill.id !== skillId),
+    }))
+  }
+
+  const handleSkillLevelChange = (skillId, newLevel) => {
+    setFormData((prev) => ({
+      ...prev,
+      skills: prev.skills.map((skill) =>
+        skill.id === skillId ? { ...skill, level: Number.parseInt(newLevel) } : skill,
+      ),
+    }))
+  }
+
   const handleSave = async () => {
     try {
       const response = await axios.put("/api/users/profile", formData)
@@ -133,6 +205,13 @@ const Profile = () => {
       "from-indigo-400 to-purple-500",
     ]
     return gradients[index % gradients.length]
+  }
+
+  const getSkillLevelLabel = (level) => {
+    if (level < 30) return "Beginner"
+    if (level < 60) return "Intermediate"
+    if (level < 85) return "Advanced"
+    return "Expert"
   }
 
   if (loading) {
@@ -283,6 +362,155 @@ const Profile = () => {
                     <X size={18} />
                     <span>Cancel</span>
                   </button>
+                </div>
+              )}
+            </div>
+
+            {/* Skills Section - NEW */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-blue-100/50 border border-blue-100/50 p-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Code className="w-5 h-5 text-blue-600" />
+                </div>
+                <h2 className="text-xl font-semibold text-gray-900">Skills</h2>
+              </div>
+
+              {editing ? (
+                <div className="space-y-6">
+                  {/* Current Skills */}
+                  {formData.skills && formData.skills.length > 0 ? (
+                    <div className="space-y-4">
+                      {formData.skills.map((skill) => (
+                        <div key={skill.id} className="p-4 bg-blue-50/50 rounded-xl border border-blue-100">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center space-x-2">
+                              <h4 className="font-medium text-gray-900">{skill.name}</h4>
+                              <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
+                                {skill.category}
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => removeSkill(skill.id)}
+                              className="p-1.5 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
+                              title="Remove skill"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                          <div className="flex items-center space-x-4">
+                            <input
+                              type="range"
+                              min="0"
+                              max="100"
+                              value={skill.level}
+                              onChange={(e) => handleSkillLevelChange(skill.id, e.target.value)}
+                              className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                            />
+                            <span className="text-sm font-medium text-gray-700 min-w-[80px]">
+                              {getSkillLevelLabel(skill.level)} ({skill.level}%)
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-600 italic mb-4">No skills added yet. Add your first skill below.</p>
+                  )}
+
+                  {/* Add New Skill Form */}
+                  <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+                    <h4 className="font-medium text-gray-900 mb-4">Add New Skill</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Skill Name</label>
+                        <input
+                          type="text"
+                          name="name"
+                          value={newSkill.name}
+                          onChange={handleNewSkillChange}
+                          placeholder="e.g., JavaScript, Python, UI Design"
+                          className="w-full px-3 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white/70"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                        <select
+                          name="category"
+                          value={newSkill.category}
+                          onChange={handleNewSkillChange}
+                          className="w-full px-3 py-2 border border-blue-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white/70"
+                        >
+                          <option value="">Select a category</option>
+                          {skillCategories.map((category) => (
+                            <option key={category} value={category}>
+                              {category}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Proficiency Level: {getSkillLevelLabel(newSkill.level)} ({newSkill.level}%)
+                      </label>
+                      <input
+                        type="range"
+                        name="level"
+                        min="0"
+                        max="100"
+                        value={newSkill.level}
+                        onChange={handleNewSkillChange}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                      />
+                    </div>
+                    <button
+                      onClick={addSkill}
+                      className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg font-medium transition-all duration-200 flex items-center space-x-2"
+                    >
+                      <Plus size={16} />
+                      <span>Add Skill</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  {profile?.skills && profile.skills.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {profile.skills.map((skill, index) => (
+                        <div
+                          key={index}
+                          className="p-4 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 rounded-xl border border-blue-100"
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium text-gray-900">{skill.name}</h4>
+                            <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
+                              {skill.category}
+                            </span>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-gray-600">{getSkillLevelLabel(skill.level)}</span>
+                              <span className="font-medium">{skill.level}%</span>
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-gradient-to-r from-blue-400 to-indigo-500 h-2 rounded-full"
+                                style={{ width: `${skill.level}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Code className="w-8 h-8 text-blue-600" />
+                      </div>
+                      <p className="text-gray-600 mb-2">No skills have been added yet.</p>
+                      <p className="text-sm text-gray-500">Click "Edit Profile" to add your skills.</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -549,6 +777,14 @@ const Profile = () => {
                     <span className="text-gray-700 font-medium">Assessment Streak</span>
                   </div>
                   <span className="font-bold text-gray-900 text-lg">{profile?.assessmentStreak || 0} days</span>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl">
+                  <div className="flex items-center">
+                    <Code size={20} className="text-purple-600 mr-3" />
+                    <span className="text-gray-700 font-medium">Skills Added</span>
+                  </div>
+                  <span className="font-bold text-gray-900 text-lg">{profile?.skills?.length || 0}</span>
                 </div>
 
                 {profile?.role === "mentor" && (

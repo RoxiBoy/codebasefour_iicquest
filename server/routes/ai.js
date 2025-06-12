@@ -4,78 +4,71 @@ import { authenticateToken } from "../middleware/auth.js"
 
 const router = express.Router()
 
-// Placeholder endpoint for AI model integration
 router.post("/analyze-assessment", authenticateToken, async (req, res) => {
   try {
-    const { assessmentId } = req.body
+    const { assessmentId } = req.body;
 
-    const assessment = await Assessment.findById(assessmentId)
+    const assessment = await Assessment.findById(assessmentId);
     if (!assessment) {
-      return res.status(404).json({ message: "Assessment not found" })
+      return res.status(404).json({ message: "Assessment not found" });
     }
 
-    // This is where you'll integrate your AI model
-    // For now, we'll return the data that should be sent to your AI model
     const aiInputData = {
       assessmentType: assessment.type,
-      responses: assessment.responses,
+      responses: assessment.responses.map((r) => r.userResponse),
       timingData: assessment.aiAnalysisData.timingAnalysis,
       behavioralMetrics: assessment.aiAnalysisData.behavioralMetrics,
-      userProfile: {
-        // Add relevant user profile data
-        userId: assessment.userId,
-        previousAssessments: await Assessment.find({
-          userId: assessment.userId,
-          _id: { $ne: assessmentId },
-        }).select("type rawScore createdAt"),
-      },
+    };
+
+    const response = await fetch("http://localhost:8000/analyze-behavior", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(aiInputData),
+    });
+
+    const aiResponse = await response.json();
+    console.log("AI Response:", aiResponse);
+
+    // Calculate average score per label
+    const labelSums = {};
+    const labelCounts = {};
+
+    for (const item of aiResponse.classifiedResponses) {
+      const label = item.top_label;
+      const score = item.score;
+
+      if (!labelSums[label]) {
+        labelSums[label] = 0;
+        labelCounts[label] = 0;
+      }
+      labelSums[label] += score;
+      labelCounts[label] += 1;
     }
 
-    // TODO: Replace this with actual AI model call
-    // const aiResponse = await callYourAIModel(aiInputData);
-
-    // Mock response for now
-    const mockAIResponse = {
-      skillScores: {
-        "Problem Solving": 75,
-        Communication: 82,
-        Leadership: 68,
-        Adaptability: 79,
-      },
-      behavioralProfile: {
-        workingStyle: "Collaborative",
-        communicationStyle: "Direct",
-        leadershipTendency: 7,
-        adaptabilityScore: 8,
-      },
-      recommendations: [
-        "Focus on developing analytical thinking skills",
-        "Practice public speaking to enhance communication",
-        "Seek leadership opportunities in team projects",
-      ],
-      confidenceScore: 0.85,
+    const averages = {};
+    for (const label in labelSums) {
+      averages[label] = labelSums[label] / labelCounts[label];
     }
 
-    // Update assessment with AI results
-    assessment.rawScore = mockAIResponse.confidenceScore * 100
-    assessment.skillsAssessed = Object.entries(mockAIResponse.skillScores).map(([skill, score]) => ({
-      skillName: skill,
+    // Store averages in skillsAssessed
+    assessment.skillsAssessed = Object.entries(averages).map(([skillName, score]) => ({
+      skillName,
       score,
-      confidence: mockAIResponse.confidenceScore,
-    }))
-    assessment.recommendations = mockAIResponse.recommendations
-    assessment.isProcessed = true
+      confidence: null, // no confidence in your AI response, set null or omit
+    }));
 
-    await assessment.save()
+    assessment.isProcessed = true;
+    assessment.status = "completed";
+
+    await assessment.save();
 
     res.json({
       message: "Assessment analyzed successfully",
-      aiInputData, // This is what you'll send to your AI model
-      results: mockAIResponse,
-    })
+      results: assessment,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message })
+    console.error(error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
-})
-
+});
 export default router

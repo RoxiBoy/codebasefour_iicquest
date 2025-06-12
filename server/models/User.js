@@ -36,6 +36,15 @@ const behavioralProfileSchema = new mongoose.Schema({
   ],
 })
 
+// New schema for user-added skills (separate from assessment-based skillDNA)
+const userSkillSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  level: { type: Number, min: 0, max: 100, required: true },
+  category: { type: String, required: true },
+  dateAdded: { type: Date, default: Date.now },
+  lastUpdated: { type: Date, default: Date.now },
+})
+
 const userSchema = new mongoose.Schema(
   {
     email: { type: String, required: true, unique: true },
@@ -51,13 +60,16 @@ const userSchema = new mongoose.Schema(
     experience: Number, // years
     education: String,
 
+    // User-added skills (for profile management)
+    skills: [userSkillSchema],
+
     // For Mentors
     expertise: [String],
     mentorRating: { type: Number, default: 0 },
     totalMentees: { type: Number, default: 0 },
     isVerified: { type: Boolean, default: false },
 
-    // Skill DNA and Behavioral Profile
+    // Skill DNA and Behavioral Profile (assessment-based)
     skillDNA: [skillDNASchema],
     behavioralProfile: behavioralProfileSchema,
 

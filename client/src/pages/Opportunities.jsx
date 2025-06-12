@@ -34,8 +34,13 @@ const Opportunities = () => {
     myOpportunities: false,
   })
 
+  // Add debouncing to prevent excessive API calls
   useEffect(() => {
-    fetchOpportunities()
+    const timeoutId = setTimeout(() => {
+      fetchOpportunities()
+    }, 300) // 300ms debounce
+
+    return () => clearTimeout(timeoutId)
   }, [filters])
 
   const fetchOpportunities = async () => {
@@ -61,7 +66,21 @@ const Opportunities = () => {
         coverLetter: "I'm interested in this opportunity and believe I'm a good fit.",
       })
       toast.success("Application submitted successfully!")
-      fetchOpportunities() // Refresh opportunities to update "Applied" status
+
+      // Update the local state immediately to reflect the application
+      setOpportunities((prev) =>
+        prev.map((opp) =>
+          opp._id === opportunityId
+            ? {
+                ...opp,
+                applications: [...(opp.applications || []), { userId: user._id }],
+              }
+            : opp,
+        ),
+      )
+
+      // Also refresh from server to get the complete updated data
+      fetchOpportunities()
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to apply")
     }
@@ -82,6 +101,13 @@ const Opportunities = () => {
       search: "",
       myOpportunities: false,
     })
+  }
+
+  // Prevent form submission on Enter key
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault()
+    }
   }
 
   const getTypeColor = (type) => {
@@ -162,72 +188,76 @@ const Opportunities = () => {
                 <span>Clear all</span>
               </button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            <form onSubmit={(e) => e.preventDefault()}>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                    <input
+                      type="text"
+                      placeholder="Search opportunities..."
+                      className="w-full pl-10 pr-4 py-3 bg-white border border-blue-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                      value={filters.search}
+                      onChange={(e) => handleFilterChange("search", e.target.value)}
+                      onKeyDown={handleKeyDown}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
+                  <select
+                    className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                    value={filters.type}
+                    onChange={(e) => handleFilterChange("type", e.target.value)}
+                  >
+                    <option value="">All Types</option>
+                    <option value="job">Job</option>
+                    <option value="internship">Internship</option>
+                    <option value="project">Project</option>
+                    <option value="mentorship">Mentorship</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Experience</label>
+                  <select
+                    className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                    value={filters.experience}
+                    onChange={(e) => handleFilterChange("experience", e.target.value)}
+                  >
+                    <option value="">All Levels</option>
+                    <option value="entry">Entry Level</option>
+                    <option value="mid">Mid Level</option>
+                    <option value="senior">Senior Level</option>
+                    <option value="expert">Expert Level</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
                   <input
                     type="text"
-                    placeholder="Search opportunities..."
-                    className="w-full pl-10 pr-4 py-3 bg-white border border-blue-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
-                    value={filters.search}
-                    onChange={(e) => handleFilterChange("search", e.target.value)}
+                    placeholder="City, Country"
+                    className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+                    value={filters.location}
+                    onChange={(e) => handleFilterChange("location", e.target.value)}
+                    onKeyDown={handleKeyDown}
                   />
                 </div>
+                {user.role === "mentor" && (
+                  <div className="flex items-end">
+                    <label className="flex items-center text-sm font-medium text-gray-700 cursor-pointer p-3 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors">
+                      <input
+                        type="checkbox"
+                        className="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out mr-3 rounded"
+                        checked={filters.myOpportunities}
+                        onChange={(e) => handleFilterChange("myOpportunities", e.target.checked)}
+                      />
+                      My Opportunities Only
+                    </label>
+                  </div>
+                )}
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
-                <select
-                  className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
-                  value={filters.type}
-                  onChange={(e) => handleFilterChange("type", e.target.value)}
-                >
-                  <option value="">All Types</option>
-                  <option value="job">Job</option>
-                  <option value="internship">Internship</option>
-                  <option value="project">Project</option>
-                  <option value="mentorship">Mentorship</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Experience</label>
-                <select
-                  className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
-                  value={filters.experience}
-                  onChange={(e) => handleFilterChange("experience", e.target.value)}
-                >
-                  <option value="">All Levels</option>
-                  <option value="entry">Entry Level</option>
-                  <option value="mid">Mid Level</option>
-                  <option value="senior">Senior Level</option>
-                  <option value="expert">Expert Level</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
-                <input
-                  type="text"
-                  placeholder="City, Country"
-                  className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
-                  value={filters.location}
-                  onChange={(e) => handleFilterChange("location", e.target.value)}
-                />
-              </div>
-              {user.role === "mentor" && (
-                <div className="flex items-end">
-                  <label className="flex items-center text-sm font-medium text-gray-700 cursor-pointer p-3 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors">
-                    <input
-                      type="checkbox"
-                      className="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out mr-3 rounded"
-                      checked={filters.myOpportunities}
-                      onChange={(e) => handleFilterChange("myOpportunities", e.target.checked)}
-                    />
-                    My Opportunities Only
-                  </label>
-                </div>
-              )}
-            </div>
+            </form>
           </div>
         )}
 
@@ -350,7 +380,7 @@ const Opportunities = () => {
                   <div className="flex flex-row lg:flex-col space-x-3 lg:space-x-0 lg:space-y-3 mt-6 lg:mt-0 lg:ml-6 flex-shrink-0">
                     {user.role === "learner" && (
                       <>
-                        {opportunity.applications?.some((app) => app.userId === user.id) ? (
+                        {opportunity.applications?.some((app) => app.userId === user._id) ? (
                           <div className="flex items-center justify-center px-6 py-3 bg-green-100 text-green-700 rounded-xl font-medium">
                             <CheckCircle size={18} className="mr-2" />
                             Applied
@@ -364,11 +394,9 @@ const Opportunities = () => {
                             <span>Apply Now</span>
                           </button>
                         )}
-                                        
-                        
                       </>
                     )}
-                    {user.role === "mentor" && opportunity.createdBy._id === user.id && (
+                    {user.role === "mentor" && opportunity.createdBy._id === user._id && (
                       <>
                         <Link
                           to={`/opportunities/edit/${opportunity._id}`}
