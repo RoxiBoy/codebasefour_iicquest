@@ -28,10 +28,10 @@ function App() {
 
   return (
     <Router>
-      <div className="h-screen flex flex-col bg-gradient-to-br from-blue-50 via-indigo-50 to-cyan-50">
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 via-indigo-50 to-cyan-50">
         <Navbar />
         <Toaster position="top-right" reverseOrder={false} />
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1">
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Home />} />
@@ -56,7 +56,18 @@ function App() {
               path="/opportunities/:id/applications"
               element={user ? <ApplicationsView /> : <Navigate to="/login" replace />}
             />
-            <Route path="/chat/:roomId?" element={user ? <Chat /> : <Navigate to="/login" replace />} />
+            <Route
+              path="/chat/:roomId?"
+              element={
+                user ? (
+                  <div className="h-screen overflow-hidden">
+                    <Chat />
+                  </div>
+                ) : (
+                  <Navigate to="/login" replace />
+                )
+              }
+            />
             <Route path="/discover" element={user ? <Discover /> : <Navigate to="/login" replace />} />
           </Routes>
         </div>

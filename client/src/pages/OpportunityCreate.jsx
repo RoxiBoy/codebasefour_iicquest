@@ -5,6 +5,7 @@ import axios from "../contexts/axios"
 import toast from "react-hot-toast"
 import { useNavigate } from "react-router-dom"
 import LoadingSpinner from "../components/LoadingSpinner"
+import { Briefcase, MapPin, DollarSign, Calendar, Target, Globe, ArrowLeft, Plus, CheckCircle } from "lucide-react"
 
 const OpportunityCreate = () => {
   const navigate = useNavigate()
@@ -76,192 +77,299 @@ const OpportunityCreate = () => {
     }
   }
 
-  if (loading) return <LoadingSpinner />
+  if (loading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-cyan-50">
+        <LoadingSpinner />
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">Post New Opportunity</h1>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                Title <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                id="title"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                required
-                className="input-field"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                Description <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                rows={5}
-                required
-                className="input-field"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-1">
-                  Type <span className="text-red-500">*</span>
-                </label>
-                <select
-                  id="type"
-                  name="type"
-                  value={formData.type}
-                  onChange={handleInputChange}
-                  className="input-field"
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-cyan-50 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-blue-100/50 border border-blue-100/50 p-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => navigate("/opportunities")}
+                  className="p-3 bg-blue-100 hover:bg-blue-200 rounded-xl transition-all duration-200 group"
                 >
-                  <option value="job">Job</option>
-                  <option value="internship">Internship</option>
-                  <option value="project">Project</option>
-                  <option value="mentorship">Mentorship</option>
-                </select>
+                  <ArrowLeft className="w-5 h-5 text-blue-600 group-hover:scale-110 transition-transform" />
+                </button>
+                <div>
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                    Post New Opportunity
+                  </h1>
+                  <p className="text-gray-600 mt-2 text-lg">Connect with talented learners and grow your network</p>
+                </div>
               </div>
-              <div>
-                <label htmlFor="experienceLevel" className="block text-sm font-medium text-gray-700 mb-1">
-                  Experience Level <span className="text-red-500">*</span>
-                </label>
-                <select
-                  id="experienceLevel"
-                  name="experienceLevel"
-                  value={formData.experienceLevel}
-                  onChange={handleInputChange}
-                  className="input-field"
-                >
-                  <option value="entry">Entry Level</option>
-                  <option value="mid">Mid Level</option>
-                  <option value="senior">Senior Level</option>
-                  <option value="expert">Expert Level</option>
-                </select>
+              <div className="hidden md:block">
+                <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full flex items-center justify-center text-white shadow-lg">
+                  <Plus className="w-8 h-8" />
+                </div>
               </div>
             </div>
+          </div>
+        </div>
 
-            <div>
-              <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
-                Location
-              </label>
-              <input
-                type="text"
-                id="location"
-                name="location"
-                value={formData.location}
-                onChange={handleInputChange}
-                className="input-field"
-                placeholder="e.g., New York, USA"
-              />
-            </div>
+        {/* Form */}
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-blue-100/50 border border-blue-100/50 p-8">
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Basic Information */}
+            <div className="space-y-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Briefcase className="w-5 h-5 text-blue-600" />
+                </div>
+                <h2 className="text-xl font-semibold text-gray-900">Basic Information</h2>
+              </div>
 
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="isRemote"
-                name="isRemote"
-                checked={formData.isRemote}
-                onChange={handleInputChange}
-                className="form-checkbox h-4 w-4 text-blue-600 transition duration-150 ease-in-out"
-              />
-              <label htmlFor="isRemote" className="ml-2 block text-sm text-gray-900">
-                This is a remote opportunity
-              </label>
-            </div>
-
-            <div>
-              <label htmlFor="requiredSkills" className="block text-sm font-medium text-gray-700 mb-1">
-                Required Skills (comma separated)
-              </label>
-              <input
-                type="text"
-                id="requiredSkills"
-                name="requiredSkills"
-                value={formData.requiredSkills}
-                onChange={handleInputChange}
-                className="input-field"
-                placeholder="e.g., JavaScript, React, Node.js"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label htmlFor="minSalary" className="block text-sm font-medium text-gray-700 mb-1">
-                  Min Salary
+                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+                  Opportunity Title <span className="text-red-500">*</span>
                 </label>
                 <input
-                  type="number"
-                  id="minSalary"
-                  name="salaryRange.min"
-                  value={formData.salaryRange.min}
+                  type="text"
+                  id="title"
+                  name="title"
+                  value={formData.title}
                   onChange={handleInputChange}
-                  className="input-field"
+                  required
+                  className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                  placeholder="e.g., Senior Frontend Developer"
                 />
               </div>
+
               <div>
-                <label htmlFor="maxSalary" className="block text-sm font-medium text-gray-700 mb-1">
-                  Max Salary
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                  Description <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  rows={5}
+                  required
+                  className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white/50 backdrop-blur-sm resize-none"
+                  placeholder="Describe the opportunity, responsibilities, and what you're looking for..."
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-2">
+                    Opportunity Type <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="type"
+                    name="type"
+                    value={formData.type}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                  >
+                    <option value="job">Full-time Job</option>
+                    <option value="internship">Internship</option>
+                    <option value="project">Project</option>
+                    <option value="mentorship">Mentorship</option>
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="experienceLevel" className="block text-sm font-medium text-gray-700 mb-2">
+                    Experience Level <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="experienceLevel"
+                    name="experienceLevel"
+                    value={formData.experienceLevel}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                  >
+                    <option value="entry">Entry Level (0-2 years)</option>
+                    <option value="mid">Mid Level (2-5 years)</option>
+                    <option value="senior">Senior Level (5+ years)</option>
+                    <option value="expert">Expert Level (10+ years)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Location & Remote */}
+            <div className="space-y-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <MapPin className="w-5 h-5 text-green-600" />
+                </div>
+                <h2 className="text-xl font-semibold text-gray-900">Location Details</h2>
+              </div>
+
+              <div>
+                <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
+                  Location
                 </label>
                 <input
-                  type="number"
-                  id="maxSalary"
-                  name="salaryRange.max"
-                  value={formData.salaryRange.max}
+                  type="text"
+                  id="location"
+                  name="location"
+                  value={formData.location}
                   onChange={handleInputChange}
-                  className="input-field"
+                  className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                  placeholder="e.g., New York, USA"
                 />
               </div>
-              <div>
-                <label htmlFor="currency" className="block text-sm font-medium text-gray-700 mb-1">
-                  Currency
-                </label>
-                <select
-                  id="currency"
-                  name="salaryRange.currency"
-                  value={formData.salaryRange.currency}
+
+              <div className="flex items-center p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+                <input
+                  type="checkbox"
+                  id="isRemote"
+                  name="isRemote"
+                  checked={formData.isRemote}
                   onChange={handleInputChange}
-                  className="input-field"
-                >
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
-                  <option value="GBP">GBP</option>
-                  <option value="INR">INR</option>
-                </select>
+                  className="w-5 h-5 text-blue-600 bg-white border-blue-300 rounded focus:ring-blue-500 focus:ring-2 transition-all duration-200"
+                />
+                <label htmlFor="isRemote" className="ml-3 flex items-center text-gray-900 font-medium">
+                  <Globe className="w-5 h-5 text-blue-600 mr-2" />
+                  This is a remote opportunity
+                </label>
               </div>
             </div>
 
-            <div>
-              <label htmlFor="deadline" className="block text-sm font-medium text-gray-700 mb-1">
-                Application Deadline
-              </label>
-              <input
-                type="date"
-                id="deadline"
-                name="deadline"
-                value={formData.deadline}
-                onChange={handleInputChange}
-                className="input-field"
-              />
+            {/* Skills & Requirements */}
+            <div className="space-y-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Target className="w-5 h-5 text-purple-600" />
+                </div>
+                <h2 className="text-xl font-semibold text-gray-900">Skills & Requirements</h2>
+              </div>
+
+              <div>
+                <label htmlFor="requiredSkills" className="block text-sm font-medium text-gray-700 mb-2">
+                  Required Skills
+                </label>
+                <input
+                  type="text"
+                  id="requiredSkills"
+                  name="requiredSkills"
+                  value={formData.requiredSkills}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                  placeholder="e.g., JavaScript, React, Node.js, Python"
+                />
+                <p className="text-sm text-gray-500 mt-2">Separate skills with commas</p>
+              </div>
             </div>
 
-            <div className="flex justify-end space-x-4 mt-6">
-              <button type="button" onClick={() => navigate("/opportunities")} className="btn-secondary">
+            {/* Compensation */}
+            <div className="space-y-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-2 bg-orange-100 rounded-lg">
+                  <DollarSign className="w-5 h-5 text-orange-600" />
+                </div>
+                <h2 className="text-xl font-semibold text-gray-900">Compensation</h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <label htmlFor="minSalary" className="block text-sm font-medium text-gray-700 mb-2">
+                    Minimum Salary
+                  </label>
+                  <input
+                    type="number"
+                    id="minSalary"
+                    name="salaryRange.min"
+                    value={formData.salaryRange.min}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                    placeholder="50000"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="maxSalary" className="block text-sm font-medium text-gray-700 mb-2">
+                    Maximum Salary
+                  </label>
+                  <input
+                    type="number"
+                    id="maxSalary"
+                    name="salaryRange.max"
+                    value={formData.salaryRange.max}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                    placeholder="80000"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="currency" className="block text-sm font-medium text-gray-700 mb-2">
+                    Currency
+                  </label>
+                  <select
+                    id="currency"
+                    name="salaryRange.currency"
+                    value={formData.salaryRange.currency}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                  >
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="GBP">GBP (£)</option>
+                    <option value="INR">INR (₹)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Timeline */}
+            <div className="space-y-6">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="p-2 bg-red-100 rounded-lg">
+                  <Calendar className="w-5 h-5 text-red-600" />
+                </div>
+                <h2 className="text-xl font-semibold text-gray-900">Timeline</h2>
+              </div>
+
+              <div>
+                <label htmlFor="deadline" className="block text-sm font-medium text-gray-700 mb-2">
+                  Application Deadline
+                </label>
+                <input
+                  type="date"
+                  id="deadline"
+                  name="deadline"
+                  value={formData.deadline}
+                  onChange={handleInputChange}
+                  className="w-full px-4 py-3 border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white/50 backdrop-blur-sm"
+                />
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row justify-end space-y-4 sm:space-y-0 sm:space-x-4 pt-8 border-t border-blue-100">
+              <button
+                type="button"
+                onClick={() => navigate("/opportunities")}
+                className="px-8 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-medium"
+              >
                 Cancel
               </button>
-              <button type="submit" disabled={loading} className="btn-primary">
-                {loading ? "Posting..." : "Post Opportunity"}
+              <button
+                type="submit"
+                disabled={loading}
+                className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-medium transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              >
+                {loading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <span>Posting...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-5 h-5" />
+                    <span>Post Opportunity</span>
+                  </>
+                )}
               </button>
             </div>
           </form>
@@ -272,4 +380,3 @@ const OpportunityCreate = () => {
 }
 
 export default OpportunityCreate
-
