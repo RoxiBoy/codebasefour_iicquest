@@ -1,88 +1,91 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect } from "react"
+import axios from "../contexts/axios"
 
-const AuthContext = createContext(undefined)
+const AuthContext = createContext()
 
-export function useAuth() {
+export const useAuth = () => {
   const context = useContext(AuthContext)
-  if (context === undefined) {
+  if (!context) {
     throw new Error("useAuth must be used within an AuthProvider")
   }
   return context
 }
 
-export function AuthProvider({ children }) {
+export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const token = localStorage.getItem("token")
-    const userData = localStorage.getItem("user")
-
-    if (token && userData) {
-      setUser(JSON.parse(userData))
+    if (token) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`
+      // Verify token and get user data
+      fetchUserData()
+    } else {
+      setLoading(false)
     }
-    setLoading(false)
   }, [])
 
-  const login = async (email, password) => {
+  const fetchUserData = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/user/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      })
-
-      if (!response.ok) {
-        throw new Error("Login failed")
-      }
-
-      const data = await response.json()
-      console.log(data)
-      localStorage.setItem("token", data.data.token)
-      localStorage.setItem("user", JSON.stringify(data.data.user))
-      setUser(data.user)
+      const response = await axios.get("/api/users/profile")
+      setUser(response.data.user)
     } catch (error) {
-      throw error
+      localStorage.removeItem("token")
+      delete axios.defaults.headers.common["Authorization"]
+    } finally {
+      setLoading(false)
     }
   }
 
-  const signup = async (userData) => {
+  const login = async (email, password) => {
     try {
-      const response = await fetch("http://localhost:5000/api/user/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(userData),
-      })
+      const response = await axios.post("/api/auth/login", { email, password })
+      const { token, user } = response.data
 
-      if (!response.ok) {
-        throw new Error("Signup failed")
-      }
+      localStorage.setItem("token", token)
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`
+      setUser(user)
 
-      const data = await response.json()
-      localStorage.setItem("token", data.token)
-      localStorage.setItem("user", JSON.stringify(data.user))
-      setUser(data.user)
+      return { success: true }
     } catch (error) {
-      throw error
+      return {
+        success: false,
+        message: error.response?.data?.message || "Login failed",
+      }
+    }
+  }
+
+  const register = async (userData) => {
+    try {
+      const response = await axios.post("/api/auth/register", userData)
+      const { token, user } = response.data
+
+      localStorage.setItem("token", token)
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`
+      setUser(user)
+
+      return { success: true }
+    } catch (error) {
+      return {
+        success: false,
+        message: error.response?.data?.message || "Registration failed",
+      }
     }
   }
 
   const logout = () => {
     localStorage.removeItem("token")
-    localStorage.removeItem("user")
+    delete axios.defaults.headers.common["Authorization"]
     setUser(null)
   }
 
   const value = {
     user,
     login,
-    signup,
+    register,
     logout,
     loading,
   }
