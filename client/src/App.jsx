@@ -12,11 +12,11 @@ import Profile from "./pages/Profile"
 import Assessment from "./pages/Assessment"
 import Opportunities from "./pages/Opportunities"
 import Chat from "./pages/Chat"
-import SkillTest from "./pages/SkillTest"
 import LoadingSpinner from "./components/LoadingSpinner"
 import ProfileView from "./pages/ProfileView"
 import OpportunityCreate from "./pages/OpportunityCreate"
 import OpportunityEdit from "./pages/OpportunityEdit"
+import SkillImprove from "./pages/SkillImprovement"
 import ApplicationsView from "./pages/ApplicationsView"
 import Discover from "./pages/Discover"
 import { Toaster } from "react-hot-toast"
@@ -46,8 +46,8 @@ function App() {
             <Route path="/improve" element={user ? <Improve /> : <Navigate to="/login" replace />} />
             <Route path="/profile/view/:id" element={user ? <ProfileView /> : <Navigate to="/login" replace />} />
             <Route path="/assessment/:type" element={user ? <Assessment /> : <Navigate to="/login" replace />} />
-            <Route path="/assessment/skill" element={user ? <SkillTest /> : <Navigate to="/login" replace />} />
             <Route path="/opportunities" element={user ? <Opportunities /> : <Navigate to="/login" replace />} />
+            <Route path="/skillimprovement" element={user? <SkillImprove /> : <Navigate to="login" replace /> } />
             <Route
               path="/opportunities/create"
               element={user ? <OpportunityCreate /> : <Navigate to="/login" replace />}

@@ -7,7 +7,7 @@ import { RefreshCw, Info } from "lucide-react"
 
 ChartJS.register(RadialLinearScale, PointElement, LineElement, Filler, Tooltip, Legend)
 
-const BehavioralSpiderGraph = ({ behavioralData, onRefresh, isLoading }) => {
+const BehavioralSpiderGraph = ({ behavioralData, onRefresh, isLoading, type }) => {
   const [chartData, setChartData] = useState({
     labels: [],
     datasets: [],
@@ -145,7 +145,13 @@ const BehavioralSpiderGraph = ({ behavioralData, onRefresh, isLoading }) => {
             {showConfidence ? "Hide Confidence" : "Show Confidence"}
           </button>
           <button
-            onClick={() => window.location.replace("/improve")}
+            onClick={() => {
+              if(type === 'technical') {
+                window.location.replace('/skillimprovement')
+              }else {
+                window.location.replace('/improve')
+              }
+            }}
             className={`px-4 py-2 rounded-lg transition-colors duration-200 bg-gray-100 text-gray-700 border border-gray-300
             }`}
           >

@@ -299,6 +299,39 @@ router.post("/submit", authenticateToken, async (req, res) => {
   }
 })
 
+router.get("/assesment/:type", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId
+    const { type } = req.params
+    
+    // Validate the type parameter
+    const validTypes = ["behavioral", "technical", "communication"]
+    if (!validTypes.includes(type)) {
+      return res.status(400).json({ 
+        message: "Invalid assessment type", 
+        validTypes: validTypes 
+      })
+    }
+    
+    // Find the most recent completed assessment of the specified type
+    const assessment = await Assessment.findOne({ 
+      userId, 
+      type,
+      status: "completed" 
+    }).sort({ createdAt: -1 }) // Get the most recent one
+        
+    if (!assessment) {
+      return res.status(404).json({ 
+        message: `No ${type} assessment found for this user` 
+      })
+    }
+    
+    res.json({ assessment })
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message })
+  }
+})
+
 // Get user's assessment history
 router.get("/assesment", authenticateToken, async (req, res) => {
   try {

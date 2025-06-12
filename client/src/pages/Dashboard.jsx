@@ -465,7 +465,7 @@ const Dashboard = () => {
                     <p className="text-sm text-gray-600">Discover your skill strengths and areas for improvement</p>
                   </Link>
                   <Link
-                    to="/assessment/skill"
+                    to="/assessment/technical"
                     className="group p-6 border border-blue-200 rounded-xl hover:border-blue-400 transition-all duration-200 hover:shadow-lg bg-gradient-to-br from-white to-blue-50/50"
                   >
                     <div className="flex items-center justify-between mb-4">

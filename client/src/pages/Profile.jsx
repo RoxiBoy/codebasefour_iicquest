@@ -51,6 +51,7 @@ const Profile = () => {
     "Other",
   ])
   const [behavioralLoading, setBehavioralLoading] = useState(true)
+  const [skillLoading, setSkillLoading] = useState(true)
 
   useEffect(() => {
     fetchProfile()
@@ -89,47 +90,48 @@ const Profile = () => {
     }
   }
 
-  const fetchAssessmentData = async () => {
-    try {
-      setBehavioralLoading(true)
-
-      // Fetch the latest behavioral assessment data from the backend
-      const response = await axios.get("http://localhost:5000/api/assessments/assesment")
-
-      if (response.data.assessment && response.data.assessment.skillsAssessed) {
-        // Parse the skillsAssessed data from the API response
-        const behavioralSkills = response.data.assessment.skillsAssessed.map((skill) => ({
-          skillName: skill.skillName,
-          score: skill.score,
-          confidence: skill.confidence,
-        }))
-
-        setBehavioralData(behavioralSkills)
-      } else {
-        // Fallback to empty array if no assessment data
-        setBehavioralData([])
-      }
-
-      // Mock data for skill assessment (keep existing)
-      setSkillData([
-        { skill: "JavaScript", level: 88, category: "Programming" },
-        { skill: "React", level: 85, category: "Frontend" },
-        { skill: "Node.js", level: 75, category: "Backend" },
-        { skill: "Python", level: 70, category: "Programming" },
-        { skill: "SQL", level: 80, category: "Database" },
-        { skill: "Git", level: 90, category: "Tools" },
-      ])
-    } catch (error) {
-      console.error("Failed to load assessment data:", error)
-      // Set empty array in case of error
+const fetchAssessmentData = async () => {
+  try {
+    setBehavioralLoading(true)
+    
+    // Fetch the latest behavioral assessment data
+    const behavioralResponse = await axios.get("http://localhost:5000/api/assessments/assesment/behavioral")
+    if (behavioralResponse.data.assessment && behavioralResponse.data.assessment.skillsAssessed) {
+      const behavioralSkills = behavioralResponse.data.assessment.skillsAssessed.map((skill) => ({
+        skillName: skill.skillName,
+        score: skill.score,
+        confidence: skill.confidence,
+      }))
+      setBehavioralData(behavioralSkills)
+    } else {
       setBehavioralData([])
-      toast.error("Failed to load behavioral assessment data")
-    } finally {
-      setBehavioralLoading(false)
     }
+    
+    // Fetch the latest technical assessment data
+    const skillResponse = await axios.get("http://localhost:5000/api/assessments/assesment/technical")
+    if (skillResponse.data.assessment && skillResponse.data.assessment.skillsAssessed) {
+      const technicalSkills = skillResponse.data.assessment.skillsAssessed.map((skill) => ({
+        skillName: skill.skillName,
+        score: skill.score,
+        confidence: skill.confidence,
+      }))
+      setSkillData(technicalSkills) // Fixed: was setting behavioralData instead of skillData
+    } else {
+      setSkillData([]) // Fixed: was setting behavioralData instead of skillData
+    }
+    
+  } catch (error) {
+    console.error("Failed to load assessment data:", error)
+    setBehavioralData([])
+    setSkillData([]) // Added this line
+    toast.error("Failed to load assessment data")
+  } finally {
+    setBehavioralLoading(false)
+    setSkillLoading(false)
   }
+}  
 
-  const handleInputChange = (e) => {
+const handleInputChange = (e) => {
     const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
@@ -657,60 +659,48 @@ const Profile = () => {
               )}
             </div>
 
-            {/* Skill Assessment Graph */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-blue-100/50 border border-blue-100/50 p-6">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="p-2 bg-orange-100 rounded-lg">
-                  <Target className="w-5 h-5 text-orange-600" />
-                </div>
-                <h2 className="text-xl font-semibold text-gray-900">Skill Assessment</h2>
-              </div>
-
-              {skillData.length > 0 ? (
-                <div className="space-y-4">
-                  {skillData.map((item, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm font-medium text-gray-700">{item.skill}</span>
-                          <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
-                            {item.category}
-                          </span>
-                        </div>
-                        <span className="text-sm font-bold text-gray-900">{item.level}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-3">
-                        <div
-                          className="bg-gradient-to-r from-orange-400 to-red-500 h-3 rounded-full transition-all duration-500"
-                          style={{ width: `${item.level}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                  <div className="mt-6 p-4 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl border border-orange-100">
-                    <p className="text-sm text-orange-700 font-medium">
-                      Last assessment:{" "}
-                      {profile?.lastSkillAssessment
-                        ? new Date(profile.lastSkillAssessment).toLocaleDateString()
-                        : "Not taken"}
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Target className="w-10 h-10 text-orange-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Skill Assessment Data</h3>
-                  <p className="text-gray-600 mb-6">Take a skill assessment to track your technical abilities</p>
-                  <button className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 hover:shadow-lg">
-                    Take Assessment
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Connections List */}
+    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-blue-100/50 border border-blue-100/50 p-6">
+  <div className="flex items-center space-x-3 mb-6">
+    <div className="p-2 bg-blue-100 rounded-lg">
+      <Target className="w-5 h-5 text-blue-600" />
+    </div>
+    <h2 className="text-xl font-semibold text-gray-900">Technical Skills Assessment</h2>
+  </div>
+  {skillLoading ? (
+    <div className="flex items-center justify-center h-[300px]">
+      <LoadingSpinner />
+    </div>
+  ) : skillData.length > 0 ? (
+    <div>
+      {/* Technical Skills Graph Component */}
+      <BehavioralSpiderGraph
+        behavioralData={skillData}
+        onRefresh={handleRefreshAssessment}
+        isLoading={skillLoading}
+      />
+      <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+        <p className="text-sm text-blue-700 font-medium">
+          Last assessment:{" "}
+          {profile?.lastTechnicalAssessment
+            ? new Date(profile.lastTechnicalAssessment).toLocaleDateString()
+            : "Recently completed"}
+        </p>
+      </div>
+    </div>
+  ) : (
+    <div className="text-center py-12">
+      <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+        <Target className="w-10 h-10 text-blue-600" />
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 mb-2">No Technical Skills Data</h3>
+      <p className="text-gray-600 mb-6">Take a technical assessment to evaluate your skills</p>
+      <button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 hover:shadow-lg">
+        Take Assessment
+      </button>
+    </div>
+  )}
+</div>
+                      {/* Connections List */}
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-blue-100/50 border border-blue-100/50 p-6">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="p-2 bg-indigo-100 rounded-lg">

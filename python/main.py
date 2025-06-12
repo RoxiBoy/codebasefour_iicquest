@@ -66,24 +66,110 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize the classifier
+# Initialize the classifier for behavioral analysis
 classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
+
+@app.post('/technicalanalysis')
+def analyze_technical_response_with_gemini(response: str) -> dict:
+    """Analyze a technical response using Gemini API"""
+    
+    labels = ["analytical", "methodical", "intuitive", "systematic"]
+    
+    prompt = f"""
+    Analyze this technical response and classify it into one of these categories: {', '.join(labels)}.
+    
+    Response to analyze: "{response}"
+    
+    Categories explained:
+    - "analytical": Shows logical breakdown and detailed reasoning
+    - "methodical": Follows systematic step-by-step approach
+    - "intuitive": Shows pattern recognition or gut instinct
+    - "systematic": Shows organized, structured thinking
+    
+    Based on the response, determine which category best fits and provide a confidence score between 0 and 1.
+    
+    Return your analysis in this exact JSON format:
+    {{
+        "top_label": "category_name",
+        "score": 0.XX
+    }}
+    
+    Only return the JSON, no additional text.
+    """
+    
+    try:
+        response_text = model.generate_content(prompt)
+        
+        # Try to parse the JSON response
+        try:
+            result = json.loads(response_text.text.strip())
+            # Ensure score is within valid range
+            if result.get("score", 0) > 1:
+                result["score"] = result["score"] / 100
+            return result
+        except json.JSONDecodeError:
+            # If JSON parsing fails, try to extract information
+            text = response_text.text.strip()
+            
+            # Find the most mentioned label
+            best_label = "systematic"  # default for technical
+            best_score = 0.5
+            
+            for label in labels:
+                if label.lower() in text.lower():
+                    best_label = label
+                    break
+            
+            # Try to extract score
+            import re
+            score_match = re.search(r'(\d+\.?\d*)', text)
+            if score_match:
+                try:
+                    best_score = float(score_match.group(1))
+                    if best_score > 1:
+                        best_score = best_score / 100
+                except:
+                    best_score = 0.5
+            
+            return {
+                "top_label": best_label,
+                "score": best_score
+            }
+            
+    except Exception as e:
+        print(f"Error with Gemini API: {e}")
+        # Fallback: return systematic with moderate confidence
+        return {
+            "top_label": "systematic",
+            "score": 0.3
+        }
 
 @app.post("/analyze-behavior")
 def classify(request: AssessmentRequest):
     """Analyze behavioral patterns from assessment responses"""
     print("Received Assessment:", request)
-
-    labels = ["collaborative", "independent", "adaptive", "rigid"]
+    
     results = []
     
-    for response in request.responses:
-        result = classifier(response, labels)
-        results.append({
-            "response": response,
-            "top_label": result["labels"][0],
-            "score": result["scores"][0]
-        })
+    if request.assessmentType == 'technical':
+        # Use Gemini for technical analysis
+        for response in request.responses:
+            gemini_result = analyze_technical_response_with_gemini(response)
+            results.append({
+                "response": response,
+                "top_label": gemini_result["top_label"],
+                "score": gemini_result["score"]
+            })
+    else:
+        # Use zero-shot classification for behavioral analysis
+        labels = ["collaborative", "independent", "adaptive", "rigid"]
+        for response in request.responses:
+            result = classifier(response, labels)
+            results.append({
+                "response": response,
+                "top_label": result["labels"][0],
+                "score": result["scores"][0]
+            })
 
     print("Classification Results:", results)
     return {"assessmentType": request.assessmentType, "classifiedResponses": results}

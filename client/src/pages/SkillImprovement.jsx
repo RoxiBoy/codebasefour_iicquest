@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import axios from "../contexts/axios"
 
-const Improve = () => {
+const SkillImprove = () => {
   const [behavioralData, setBehavioralData] = useState(null)
   const [aiResponse, setAiResponse] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -11,7 +11,7 @@ const Improve = () => {
 
   const fetchAssessmentData = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/assessments/assesment/behavioral")
+      const response = await axios.get("http://localhost:5000/api/assessments/assesment/technical")
       const responses = response.data.assessment.responses
       const skillsAssessed = response.data.assessment.skillsAssessed
       const finalData = {
@@ -234,5 +234,5 @@ const Improve = () => {
   )
 }
 
-export default Improve
+export default SkillImprove
 
