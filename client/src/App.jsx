@@ -28,31 +28,41 @@ function App() {
 
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50">
+      <div className="h-screen flex flex-col bg-gradient-to-br from-blue-50 via-indigo-50 to-cyan-50">
         <Navbar />
         <Toaster position="top-right" reverseOrder={false} />
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
-          <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <Register />} />
+        <div className="flex-1 overflow-hidden">
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
+            <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <Register />} />
 
-          {/* Protected Routes */}
-          <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/login" replace />} />
-          <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" replace />} />
-          <Route path="/profile/view/:id" element={user ? <ProfileView /> : <Navigate to="/login" replace />} />
-          <Route path="/assessment/:type" element={user ? <Assessment /> : <Navigate to="/login" replace />} />
-          <Route path="/opportunities" element={user ? <Opportunities /> : <Navigate to="/login" replace />} />
-          <Route path="/opportunities/create" element={user ? <OpportunityCreate /> : <Navigate to="/login" replace />} />
-          <Route path="/opportunities/edit/:id" element={user ? <OpportunityEdit /> : <Navigate to="/login" replace />} />
-          <Route path="/opportunities/:id/applications" element={user ? <ApplicationsView /> : <Navigate to="/login" replace />} />
-          <Route path="/chat/:roomId?" element={user ? <Chat /> : <Navigate to="/login" replace />} />
-          <Route path="/discover" element={user ? <Discover /> : <Navigate to="/login" replace />} />
-        </Routes>
+            {/* Protected Routes */}
+            <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/login" replace />} />
+            <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" replace />} />
+            <Route path="/profile/view/:id" element={user ? <ProfileView /> : <Navigate to="/login" replace />} />
+            <Route path="/assessment/:type" element={user ? <Assessment /> : <Navigate to="/login" replace />} />
+            <Route path="/opportunities" element={user ? <Opportunities /> : <Navigate to="/login" replace />} />
+            <Route
+              path="/opportunities/create"
+              element={user ? <OpportunityCreate /> : <Navigate to="/login" replace />}
+            />
+            <Route
+              path="/opportunities/edit/:id"
+              element={user ? <OpportunityEdit /> : <Navigate to="/login" replace />}
+            />
+            <Route
+              path="/opportunities/:id/applications"
+              element={user ? <ApplicationsView /> : <Navigate to="/login" replace />}
+            />
+            <Route path="/chat/:roomId?" element={user ? <Chat /> : <Navigate to="/login" replace />} />
+            <Route path="/discover" element={user ? <Discover /> : <Navigate to="/login" replace />} />
+          </Routes>
+        </div>
       </div>
     </Router>
   )
 }
 
 export default App
-
