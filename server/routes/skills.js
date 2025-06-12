@@ -4,7 +4,6 @@ import { authenticateToken } from "../middleware/auth.js"
 
 const router = express.Router()
 
-// Get all skills
 router.get("/", async (req, res) => {
   try {
     const { category, search } = req.query
@@ -25,7 +24,6 @@ router.get("/", async (req, res) => {
   }
 })
 
-// Create new skill (admin only for now)
 router.post("/", authenticateToken, async (req, res) => {
   try {
     const skill = new Skill(req.body)
@@ -36,7 +34,6 @@ router.post("/", authenticateToken, async (req, res) => {
   }
 })
 
-// Get skill categories
 router.get("/categories", async (req, res) => {
   try {
     const categories = await Skill.distinct("category")
@@ -46,7 +43,6 @@ router.get("/categories", async (req, res) => {
   }
 })
 
-// Get trending skills
 router.get("/trending", async (req, res) => {
   try {
     const trendingSkills = await Skill.find({ trendDirection: "rising" }).sort({ demandLevel: -1 }).limit(10)

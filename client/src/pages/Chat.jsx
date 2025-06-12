@@ -234,7 +234,6 @@ const Chat = () => {
                           <span className="text-lg">{room.otherUser?.firstName?.[0]}</span>
                         )}
                       </div>
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
                     </div>
 
                     <div className="ml-3 flex-1 min-w-0">
@@ -283,7 +282,6 @@ const Chat = () => {
                     <h3 className="text-lg font-semibold text-gray-900">
                       {getChatPartnerName(chatRooms.find((room) => room._id === selectedRoom))}
                     </h3>
-                    <p className="text-sm text-green-600">Online</p>
                   </div>
                 </div>
 

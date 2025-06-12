@@ -41,16 +41,15 @@ const Discover = () => {
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       fetchUsers()
-    }, 300) // 300ms debounce
+    }, 300) 
 
     return () => clearTimeout(timeoutId)
   }, [filters])
 
-  // Add a separate useEffect for initial load
   useEffect(() => {
     fetchRequests()
     fetchUsers()
-  }, []) // Remove filters dependency from here
+  }, []) 
 
   const fetchRequests = async () => {
     try {
@@ -102,7 +101,7 @@ const Discover = () => {
     try {
       const response = await axios.post(`/api/users/connect/${userId}`)
       toast.success(response.data.message)
-      fetchUsers() // Refresh users to update connection status
+      fetchUsers() 
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to send connection request")
     }
@@ -112,8 +111,8 @@ const Discover = () => {
     try {
       await axios.post(`/api/users/requests/${requestId}/accept`)
       toast.success("Connection request accepted!")
-      fetchRequests() // Refresh requests
-      fetchUsers() // Refresh users to update connection status
+      fetchRequests() 
+      fetchUsers() 
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to accept request")
     }
@@ -123,7 +122,7 @@ const Discover = () => {
     try {
       await axios.post(`/api/users/requests/${requestId}/reject`)
       toast.success("Connection request rejected.")
-      fetchRequests() // Refresh requests
+      fetchRequests() 
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to reject request")
     }

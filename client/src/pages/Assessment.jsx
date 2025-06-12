@@ -20,7 +20,6 @@ const Assessment = () => {
     startTime: new Date(),
   })
 
-  // Interaction tracking
   const [interactionData, setInteractionData] = useState({
     clickCount: 0,
     keystrokes: 0,
@@ -71,8 +70,6 @@ const Assessment = () => {
       toast.error("Failed to load questions. Please try again later.")
       console.error("Error fetching questions:", error)
       setLoading(false)
-      // Optionally navigate back to dashboard if no questions
-      // navigate("/dashboard");
     }
   }
 
@@ -96,8 +93,6 @@ const Assessment = () => {
   const handleAnswerSelect = (answer) => {
     trackInteraction("click")
     const timeTaken = Date.now() - questionStartTime.current
-
-    // Check if this question has already been answered
     const existingResponseIndex = responses.findIndex((r) => r.questionId === questions[currentQuestion].questionId)
 
     const newResponse = {
@@ -109,19 +104,17 @@ const Assessment = () => {
       interactionData: {
         ...interactionData,
         timeTaken,
-        confidenceLevel: 5, // Default confidence, could be enhanced with UI
+        confidenceLevel: 5,
       },
     }
 
     if (existingResponseIndex >= 0) {
-      // Replace existing response
       setResponses((prev) => {
         const updated = [...prev]
         updated[existingResponseIndex] = newResponse
         return updated
       })
     } else {
-      // Add new response
       setResponses((prev) => [...prev, newResponse])
     }
   }
@@ -147,7 +140,6 @@ const Assessment = () => {
         },
       })
 
-      // Call AI analysis endpoint
       await axios.post("/api/ai/analyze-assessment", {
         assessmentId: response.data.assessmentId,
       })
@@ -283,17 +275,7 @@ const Assessment = () => {
             </div>
           </div>
         </div>
-
-        {/* Instructions */}
-        <div className="bg-blue-50 rounded-lg p-4 mt-6">
-          <h3 className="font-medium text-blue-900 mb-2">Instructions:</h3>
-          <ul className="text-sm text-blue-800 space-y-1">
-            <li>• Answer all questions to the best of your ability</li>
-            <li>• There are no right or wrong answers for behavioral questions</li>
-            {type === "technical" && <li>• Some questions have time limits - work efficiently</li>}
-            <li>• Your responses help build your personalized Skill DNA</li>
-          </ul>
-        </div>
+        
       </div>
 
       {/* Submit Modal */}

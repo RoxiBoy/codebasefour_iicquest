@@ -41,30 +41,24 @@ const Improve = () => {
   const parseMarkdownResponse = (markdown) => {
     if (!markdown) return []
 
-    // Split by skill sections (### Skill:)
     const skillSections = markdown.split("### Skill:").filter((section) => section.trim())
 
     return skillSections.map((section) => {
-      // Extract skill name
       const nameMatch = section.match(/^([^*]+)/)
       const name = nameMatch ? nameMatch[1].trim() : ""
 
-      // Extract score
       const scoreMatch = section.match(/\*\*Score:\*\* ([\d.]+)/)
       const score = scoreMatch ? Number.parseFloat(scoreMatch[1]) : 0
 
-      // Extract summary
       const summaryMatch = section.match(/_Summary_: ([^*]+)/)
       const summary = summaryMatch ? summaryMatch[1].trim() : ""
 
-      // Extract tips
       const tipsSection = section.split("**Tips to Improve:**")[1]
       const tips = tipsSection
         ? tipsSection
             .split("- **")
             .filter((tip) => tip.trim())
             .map((tip) => {
-              // Remove the bold formatting and clean up
               const cleanTip = tip.replace(/\*\*/g, "").trim()
               return cleanTip
             })

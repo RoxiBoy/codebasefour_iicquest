@@ -5,7 +5,6 @@ import { authenticateToken } from "../middleware/auth.js"
 
 const router = express.Router()
 
-// Get assessment questions
 router.get("/questions/:type", authenticateToken, async (req, res) => {
   try {
     const { type } = req.params
@@ -238,13 +237,11 @@ router.get("/questions/:type", authenticateToken, async (req, res) => {
   }
 })
 
-// Submit assessment
 router.post("/submit", authenticateToken, async (req, res) => {
   try {
     const { type, responses, sessionData } = req.body
     const userId = req.user.userId
 
-    // Create assessment record
     const assessment = new Assessment({
       userId,
       type,
@@ -259,10 +256,8 @@ router.post("/submit", authenticateToken, async (req, res) => {
       status: "completed",
     })
 
-    // Calculate total duration
     assessment.totalDuration = Math.floor((assessment.endTime - assessment.startTime) / 1000)
 
-    // Prepare data for AI analysis
     assessment.aiAnalysisData = {
       responsePatterns: responses.map((r) => ({
         questionId: r.questionId,
@@ -284,7 +279,6 @@ router.post("/submit", authenticateToken, async (req, res) => {
 
     await assessment.save()
 
-    // Update user's assessment history
     await User.findByIdAndUpdate(userId, {
       [`last${type.charAt(0).toUpperCase() + type.slice(1)}Assessment`]: new Date(),
     })
@@ -299,7 +293,6 @@ router.post("/submit", authenticateToken, async (req, res) => {
   }
 })
 
-// Get user's assessment history
 router.get("/assesment", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId

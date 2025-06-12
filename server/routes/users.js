@@ -7,7 +7,6 @@ import Assessment from "../models/Assessment.js"
 
 const router = express.Router()
 
-// Get user profile
 router.get("/profile", authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.userId)
@@ -25,23 +24,19 @@ router.get("/profile", authenticateToken, async (req, res) => {
   }
 })
 
-// Update user profile
 router.put("/profile", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId
     const updates = req.body
 
-    // Remove sensitive fields
     delete updates.password
     delete updates.email
     delete updates.role
 
-    // Handle skills update separately to ensure proper validation
     if (updates.skills) {
-      // Validate skills array
       const validatedSkills = updates.skills.map((skill) => ({
         name: skill.name,
-        level: Math.min(Math.max(skill.level, 0), 100), // Ensure level is between 0-100
+        level: Math.min(Math.max(skill.level, 0), 100), 
         category: skill.category,
         lastUpdated: new Date(),
         dateAdded: skill.dateAdded || new Date(),
@@ -54,7 +49,6 @@ router.put("/profile", authenticateToken, async (req, res) => {
       runValidators: true,
     }).select("-password")
 
-    // Add activity log for profile update
     await User.findByIdAndUpdate(userId, {
       $push: {
         activityLog: {
@@ -74,13 +68,11 @@ router.put("/profile", authenticateToken, async (req, res) => {
   }
 })
 
-// Add a new skill to user profile
 router.post("/skills", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId
     const { name, level, category } = req.body
 
-    // Validate input
     if (!name || !category || level === undefined) {
       return res.status(400).json({ message: "Name, level, and category are required" })
     }
@@ -94,14 +86,12 @@ router.post("/skills", authenticateToken, async (req, res) => {
       return res.status(404).json({ message: "User not found" })
     }
 
-    // Check if skill already exists
     const existingSkill = user.skills.find((skill) => skill.name.toLowerCase() === name.toLowerCase())
 
     if (existingSkill) {
       return res.status(400).json({ message: "Skill already exists. Use update endpoint to modify it." })
     }
 
-    // Add new skill
     const newSkill = {
       name: name.trim(),
       level: Number.parseInt(level),
@@ -113,7 +103,6 @@ router.post("/skills", authenticateToken, async (req, res) => {
     user.skills.push(newSkill)
     await user.save()
 
-    // Add activity log
     await User.findByIdAndUpdate(userId, {
       $push: {
         activityLog: {
@@ -134,7 +123,6 @@ router.post("/skills", authenticateToken, async (req, res) => {
   }
 })
 
-// Update an existing skill
 router.put("/skills/:skillId", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId
@@ -151,7 +139,6 @@ router.put("/skills/:skillId", authenticateToken, async (req, res) => {
       return res.status(404).json({ message: "Skill not found" })
     }
 
-    // Update skill fields
     if (name !== undefined) skill.name = name.trim()
     if (level !== undefined) {
       if (level < 0 || level > 100) {
@@ -164,7 +151,6 @@ router.put("/skills/:skillId", authenticateToken, async (req, res) => {
 
     await user.save()
 
-    // Add activity log
     await User.findByIdAndUpdate(userId, {
       $push: {
         activityLog: {
@@ -181,7 +167,6 @@ router.put("/skills/:skillId", authenticateToken, async (req, res) => {
   }
 })
 
-// Delete a skill
 router.delete("/skills/:skillId", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId
@@ -201,7 +186,6 @@ router.delete("/skills/:skillId", authenticateToken, async (req, res) => {
     skill.deleteOne()
     await user.save()
 
-    // Add activity log
     await User.findByIdAndUpdate(userId, {
       $push: {
         activityLog: {
@@ -218,7 +202,6 @@ router.delete("/skills/:skillId", authenticateToken, async (req, res) => {
   }
 })
 
-// Get user's skills
 router.get("/skills", authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.userId).select("skills")
@@ -232,7 +215,6 @@ router.get("/skills", authenticateToken, async (req, res) => {
   }
 })
 
-// Get users for matching (mentors for learners, learners for mentors)
 router.get("/discover", authenticateToken, async (req, res) => {
   try {
     const currentUser = await User.findById(req.user.userId)
@@ -277,7 +259,6 @@ router.get("/discover", authenticateToken, async (req, res) => {
 
     const total = await User.countDocuments(query)
 
-    // Check connection status for each user
     const usersWithStatus = await Promise.all(
       users.map(async (u) => {
         const isConnected = currentUser.connections.includes(u._id)
@@ -318,7 +299,6 @@ router.get("/discover", authenticateToken, async (req, res) => {
   }
 })
 
-// Send connection request
 router.post("/connect/:userId", authenticateToken, async (req, res) => {
   try {
     const currentUserId = req.user.userId
@@ -335,12 +315,10 @@ router.post("/connect/:userId", authenticateToken, async (req, res) => {
       return res.status(404).json({ message: "User not found" })
     }
 
-    // Check if already connected
     if (currentUser.connections.includes(targetUserId)) {
       return res.status(400).json({ message: "Already connected" })
     }
 
-    // Check for existing pending request
     const existingRequest = await ConnectionRequest.findOne({
       $or: [
         { sender: currentUserId, receiver: targetUserId, status: "pending" },
@@ -364,7 +342,6 @@ router.post("/connect/:userId", authenticateToken, async (req, res) => {
   }
 })
 
-// Get user's connections
 router.get("/connections", authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.userId).populate(
@@ -378,7 +355,6 @@ router.get("/connections", authenticateToken, async (req, res) => {
   }
 })
 
-// Get received connection requests
 router.get("/requests/received", authenticateToken, async (req, res) => {
   try {
     const requests = await ConnectionRequest.find({ receiver: req.user.userId, status: "pending" }).populate(
@@ -391,7 +367,6 @@ router.get("/requests/received", authenticateToken, async (req, res) => {
   }
 })
 
-// Accept connection request
 router.post("/requests/:requestId/accept", authenticateToken, async (req, res) => {
   try {
     const requestId = req.params.requestId
@@ -407,11 +382,9 @@ router.post("/requests/:requestId/accept", authenticateToken, async (req, res) =
     request.updatedAt = new Date()
     await request.save()
 
-    // Establish mutual connection
     await User.findByIdAndUpdate(request.sender, { $addToSet: { connections: request.receiver } })
     await User.findByIdAndUpdate(request.receiver, { $addToSet: { connections: request.sender } })
 
-    // Add activity log for both users
     await User.findByIdAndUpdate(request.sender, {
       $push: {
         activityLog: {
@@ -437,7 +410,6 @@ router.post("/requests/:requestId/accept", authenticateToken, async (req, res) =
   }
 })
 
-// Reject connection request
 router.post("/requests/:requestId/reject", authenticateToken, async (req, res) => {
   try {
     const requestId = req.params.requestId
@@ -459,7 +431,6 @@ router.post("/requests/:requestId/reject", authenticateToken, async (req, res) =
   }
 })
 
-// Update skill DNA after assessment
 router.post("/update-skill-dna", authenticateToken, async (req, res) => {
   try {
     const { skillScores, behavioralProfile } = req.body
@@ -467,7 +438,6 @@ router.post("/update-skill-dna", authenticateToken, async (req, res) => {
 
     const user = await User.findById(userId)
 
-    // Update skill DNA
     for (const [skillName, score] of Object.entries(skillScores)) {
       const existingSkill = user.skillDNA.find((skill) => skill.skillName === skillName)
 
@@ -475,7 +445,7 @@ router.post("/update-skill-dna", authenticateToken, async (req, res) => {
         const previousScore = existingSkill.level
         existingSkill.level = score
         existingSkill.lastAssessed = new Date()
-        existingSkill.growthRate = score - previousScore // Calculate growth rate
+        existingSkill.growthRate = score - previousScore 
         existingSkill.assessmentHistory.push({
           score,
           date: new Date(),
@@ -486,7 +456,7 @@ router.post("/update-skill-dna", authenticateToken, async (req, res) => {
           skillName,
           level: score,
           lastAssessed: new Date(),
-          growthRate: 0, // Initial growth rate is 0 for new skills
+          growthRate: 0, 
           assessmentHistory: [
             {
               score,
@@ -498,7 +468,6 @@ router.post("/update-skill-dna", authenticateToken, async (req, res) => {
       }
     }
 
-    // Update behavioral profile
     if (behavioralProfile) {
       user.behavioralProfile = {
         ...user.behavioralProfile,
@@ -515,7 +484,6 @@ router.post("/update-skill-dna", authenticateToken, async (req, res) => {
   }
 })
 
-// Get specific user profile (for viewing others' profiles)
 router.get("/profile/:userId", authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params
@@ -527,7 +495,6 @@ router.get("/profile/:userId", authenticateToken, async (req, res) => {
       return res.status(404).json({ message: "User not found" })
     }
 
-    // Determine connection status
     const currentUser = await User.findById(currentUserId)
     const isConnected = currentUser.connections.includes(userId)
     let connectionStatus = null
@@ -558,7 +525,7 @@ router.get("/profile/:userId", authenticateToken, async (req, res) => {
     res.json({
       user: {
         ...user.toObject(),
-        email: isConnected ? user.email : undefined, // Hide email if not connected
+        email: isConnected ? user.email : undefined, 
         phone: isConnected ? user.phone : undefined,
         website: isConnected ? user.website : undefined,
         learningGoals: isConnected ? user.learningGoals : undefined,
@@ -577,7 +544,6 @@ router.get("/profile/:userId", authenticateToken, async (req, res) => {
   }
 })
 
-// Get user stats for dashboard
 router.get("/stats", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId
@@ -585,13 +551,11 @@ router.get("/stats", authenticateToken, async (req, res) => {
 
     const stats = {
       connections: user.connections.length,
-      growthScore: 0, // Will calculate below
+      growthScore: 0, 
     }
 
-    // Calculate assessments completed by querying the Assessment model
     stats.assessmentsCompleted = await Assessment.countDocuments({ userId: userId, status: "completed" })
 
-    // Calculate growth score
     if (user.skillDNA && user.skillDNA.length > 0) {
       const totalGrowth = user.skillDNA.reduce((sum, skill) => sum + (skill.growthRate || 0), 0)
       stats.growthScore = Math.round(totalGrowth / user.skillDNA.length)
@@ -602,7 +566,6 @@ router.get("/stats", authenticateToken, async (req, res) => {
       stats.opportunitiesPosted = opportunities.length
       stats.applicationsReceived = opportunities.reduce((sum, opp) => sum + opp.applications.length, 0)
     } else {
-      // Count skills mastered (both from skillDNA and user-added skills)
       const skillDNAMastered = user.skillDNA.filter((skill) => skill.level >= 90).length
       const userSkillsMastered = user.skills.filter((skill) => skill.level >= 90).length
       stats.skillsMastered = skillDNAMastered + userSkillsMastered
@@ -614,17 +577,14 @@ router.get("/stats", authenticateToken, async (req, res) => {
   }
 })
 
-// Get historical stats for percentage calculations
 router.get("/stats/historical", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId
     const user = await User.findById(userId)
 
-    // Calculate stats from 30 days ago
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-    // For connections, we can check activity log for historical data
     const connectionActivities = user.activityLog.filter(
       (activity) => activity.action === "connection_accepted" && activity.timestamp < thirtyDaysAgo,
     )
@@ -634,8 +594,7 @@ router.get("/stats/historical", authenticateToken, async (req, res) => {
       period: "last month",
     }
 
-    // For other stats, you might want to implement a more sophisticated tracking system
-    // For now, we'll provide some mock historical data
+    
     if (user.role === "mentor") {
       historicalStats.opportunitiesPosted = Math.max(0, (await Opportunity.countDocuments({ createdBy: userId })) - 2)
       historicalStats.applicationsReceived = Math.max(0, historicalStats.opportunitiesPosted * 3)
@@ -653,7 +612,6 @@ router.get("/stats/historical", authenticateToken, async (req, res) => {
   }
 })
 
-// Get recent activity for dashboard
 router.get("/activity", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId
@@ -661,7 +619,6 @@ router.get("/activity", authenticateToken, async (req, res) => {
 
     const activities = []
 
-    // Fetch recent completed assessments
     const recentAssessments = await Assessment.find({ userId: userId, status: "completed" })
       .sort({ createdAt: -1 })
       .limit(3)
@@ -673,7 +630,6 @@ router.get("/activity", authenticateToken, async (req, res) => {
       })
     })
 
-    // Fetch recent accepted connection requests where current user is sender or receiver
     const recentAcceptedConnections = await ConnectionRequest.find({
       $or: [{ sender: userId }, { receiver: userId }],
       status: "accepted",
@@ -692,7 +648,6 @@ router.get("/activity", authenticateToken, async (req, res) => {
       })
     })
 
-    // Add recent skill additions from activity log
     const recentSkillActivities = user.activityLog
       .filter((activity) => ["skill_added", "skill_updated", "profile_updated"].includes(activity.action))
       .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
@@ -718,22 +673,19 @@ router.get("/activity", authenticateToken, async (req, res) => {
       })
     })
 
-    // Sort activities by timestamp
     activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
 
-    res.json({ activities: activities.slice(0, 10) }) // Return top 10 activities
+    res.json({ activities: activities.slice(0, 10) })
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message })
   }
 })
 
-// Get current achievements for dashboard
 router.get("/achievements/current", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId
     const user = await User.findById(userId)
 
-    // Mock achievement system - you can expand this based on your requirements
     let currentAchievement = null
 
     const skillsCount = user.skills.length

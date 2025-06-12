@@ -8,7 +8,7 @@ import { ArrowLeft, User, Check, XCircle, MessageCircle } from "lucide-react"
 import LoadingSpinner from "../components/LoadingSpinner"
 
 const ApplicationsView = () => {
-  const { id } = useParams() // Opportunity ID
+  const { id } = useParams()
   const navigate = useNavigate()
   const [opportunity, setOpportunity] = useState(null)
   const [applications, setApplications] = useState([])
@@ -26,7 +26,7 @@ const ApplicationsView = () => {
       setLoading(false)
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to load applications")
-      navigate("/opportunities") // Redirect if opportunity not found or access denied
+      navigate("/opportunities")
     }
   }
 
@@ -34,7 +34,7 @@ const ApplicationsView = () => {
     try {
       await axios.put(`/api/opportunities/${id}/applications/${applicationId}`, { status })
       toast.success(`Application ${status}!`)
-      fetchApplications() // Refresh applications
+      fetchApplications() 
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to update application status")
     }

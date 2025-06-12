@@ -22,7 +22,7 @@ const OpportunityEdit = () => {
       max: "",
       currency: "",
     },
-    requiredSkills: "", // comma separated string
+    requiredSkills: "",  
     deadline: "",
     status: "",
   })
@@ -90,10 +90,10 @@ const OpportunityEdit = () => {
           .split(",")
           .map((skill) => ({
             skillName: skill.trim(),
-            minimumLevel: 50, // Default minimum level
-            weight: 1, // Default weight
+            minimumLevel: 50, 
+            weight: 1, 
           }))
-          .filter((skill) => skill.skillName), // Remove empty strings
+          .filter((skill) => skill.skillName), 
         salaryRange: {
           min: Number.parseInt(formData.salaryRange.min) || 0,
           max: Number.parseInt(formData.salaryRange.max) || 0,
