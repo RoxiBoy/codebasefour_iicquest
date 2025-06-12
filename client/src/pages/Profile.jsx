@@ -26,6 +26,7 @@ import {
   Trash2,
 } from "lucide-react"
 import LoadingSpinner from "../components/LoadingSpinner"
+import BehavioralSpiderGraph from "../components/BehavioralSpiderGraph"
 
 const Profile = () => {
   const { user, setUser } = useAuth()
@@ -49,6 +50,7 @@ const Profile = () => {
     "Communication",
     "Other",
   ])
+  const [behavioralLoading, setBehavioralLoading] = useState(true)
 
   useEffect(() => {
     fetchProfile()
@@ -89,16 +91,26 @@ const Profile = () => {
 
   const fetchAssessmentData = async () => {
     try {
-      // Mock data for demonstration - replace with actual API calls
-      setBehavioralData([
-        { trait: "Communication", score: 85, maxScore: 100 },
-        { trait: "Leadership", score: 72, maxScore: 100 },
-        { trait: "Teamwork", score: 90, maxScore: 100 },
-        { trait: "Problem Solving", score: 78, maxScore: 100 },
-        { trait: "Adaptability", score: 82, maxScore: 100 },
-        { trait: "Creativity", score: 75, maxScore: 100 },
-      ])
+      setBehavioralLoading(true)
 
+      // Fetch the latest behavioral assessment data from the backend
+      const response = await axios.get("http://localhost:5000/api/assessments/assesment")
+
+      if (response.data.assessment && response.data.assessment.skillsAssessed) {
+        // Parse the skillsAssessed data from the API response
+        const behavioralSkills = response.data.assessment.skillsAssessed.map((skill) => ({
+          skillName: skill.skillName,
+          score: skill.score,
+          confidence: skill.confidence,
+        }))
+
+        setBehavioralData(behavioralSkills)
+      } else {
+        // Fallback to empty array if no assessment data
+        setBehavioralData([])
+      }
+
+      // Mock data for skill assessment (keep existing)
       setSkillData([
         { skill: "JavaScript", level: 88, category: "Programming" },
         { skill: "React", level: 85, category: "Frontend" },
@@ -109,6 +121,11 @@ const Profile = () => {
       ])
     } catch (error) {
       console.error("Failed to load assessment data:", error)
+      // Set empty array in case of error
+      setBehavioralData([])
+      toast.error("Failed to load behavioral assessment data")
+    } finally {
+      setBehavioralLoading(false)
     }
   }
 
@@ -193,6 +210,10 @@ const Profile = () => {
   const handleCancel = () => {
     setFormData(profile)
     setEditing(false)
+  }
+
+  const handleRefreshAssessment = () => {
+    fetchAssessmentData()
   }
 
   const getRandomGradient = (index) => {
@@ -591,7 +612,7 @@ const Profile = () => {
               )}
             </div>
 
-            {/* Behavioral Assessment Graph */}
+            {/* Behavioral Assessment Graph - Now using Spider Graph */}
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-blue-100/50 border border-blue-100/50 p-6">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="p-2 bg-green-100 rounded-lg">
@@ -600,28 +621,25 @@ const Profile = () => {
                 <h2 className="text-xl font-semibold text-gray-900">Behavioral Assessment</h2>
               </div>
 
-              {behavioralData.length > 0 ? (
-                <div className="space-y-4">
-                  {behavioralData.map((item, index) => (
-                    <div key={index} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-700">{item.trait}</span>
-                        <span className="text-sm font-bold text-gray-900">{item.score}%</span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-3">
-                        <div
-                          className="bg-gradient-to-r from-green-400 to-teal-500 h-3 rounded-full transition-all duration-500"
-                          style={{ width: `${item.score}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
+              {behavioralLoading ? (
+                <div className="flex items-center justify-center h-[300px]">
+                  <LoadingSpinner />
+                </div>
+              ) : behavioralData.length > 0 ? (
+                <div>
+                  {/* Spider Graph Component */}
+                  <BehavioralSpiderGraph
+                    behavioralData={behavioralData}
+                    onRefresh={handleRefreshAssessment}
+                    isLoading={behavioralLoading}
+                  />
+
                   <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-teal-50 rounded-xl border border-green-100">
                     <p className="text-sm text-green-700 font-medium">
                       Last assessment:{" "}
                       {profile?.lastBehavioralAssessment
                         ? new Date(profile.lastBehavioralAssessment).toLocaleDateString()
-                        : "Not taken"}
+                        : "Recently completed"}
                     </p>
                   </div>
                 </div>
@@ -829,12 +847,15 @@ const Profile = () => {
             <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-blue-100/50 border border-blue-100/50 p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">Quick Actions</h2>
               <div className="space-y-3">
-                <button className="group w-full flex items-center justify-between p-4 rounded-xl hover:bg-blue-50 transition-all duration-200 border border-transparent hover:border-blue-200">
+                <button
+                  onClick={handleRefreshAssessment}
+                  className="group w-full flex items-center justify-between p-4 rounded-xl hover:bg-blue-50 transition-all duration-200 border border-transparent hover:border-blue-200"
+                >
                   <div className="flex items-center">
                     <div className="p-2 bg-blue-100 rounded-lg group-hover:bg-blue-200 transition-colors mr-3">
                       <Brain className="w-5 h-5 text-blue-600" />
                     </div>
-                    <span className="text-gray-900 font-medium">Take Assessment</span>
+                    <span className="text-gray-900 font-medium">Refresh Assessment</span>
                   </div>
                   <ArrowUpRight className="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors" />
                 </button>
@@ -868,3 +889,4 @@ const Profile = () => {
 }
 
 export default Profile
+
