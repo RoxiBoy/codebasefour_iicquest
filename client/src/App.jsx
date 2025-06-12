@@ -5,12 +5,14 @@ import { useAuth } from "./contexts/AuthContext"
 import Navbar from "./components/Navbar"
 import Home from "./pages/Home"
 import Login from "./pages/Login"
+import Improve from "./pages/Improve"
 import Register from "./pages/Register"
 import Dashboard from "./pages/Dashboard"
 import Profile from "./pages/Profile"
 import Assessment from "./pages/Assessment"
 import Opportunities from "./pages/Opportunities"
 import Chat from "./pages/Chat"
+import SkillTest from "./pages/SkillTest"
 import LoadingSpinner from "./components/LoadingSpinner"
 import ProfileView from "./pages/ProfileView"
 import OpportunityCreate from "./pages/OpportunityCreate"
@@ -39,10 +41,12 @@ function App() {
             <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <Register />} />
 
             {/* Protected Routes */}
-            <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/login" replace />} />
             <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" replace />} />
+            <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/login" replace />} />
+            <Route path="/improve" element={user ? <Improve /> : <Navigate to="/login" replace />} />
             <Route path="/profile/view/:id" element={user ? <ProfileView /> : <Navigate to="/login" replace />} />
             <Route path="/assessment/:type" element={user ? <Assessment /> : <Navigate to="/login" replace />} />
+            <Route path="/assessment/skill" element={user ? <SkillTest /> : <Navigate to="/login" replace />} />
             <Route path="/opportunities" element={user ? <Opportunities /> : <Navigate to="/login" replace />} />
             <Route
               path="/opportunities/create"

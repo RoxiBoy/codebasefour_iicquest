@@ -7,6 +7,7 @@ import axios from "../contexts/axios"
 import {
   Users,
   BookOpen,
+  ClipboardCheck,
   Target,
   TrendingUp,
   MessageCircle,
@@ -403,9 +404,23 @@ const Dashboard = () => {
                       </div>
                       <ArrowUpRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
                     </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Take Assessment</h3>
+                    <h3 className="font-semibold text-gray-900 mb-2">Take Behavioral Assessment</h3>
                     <p className="text-sm text-gray-600">Discover your skill strengths and areas for improvement</p>
                   </Link>
+                  <Link
+                    to="/assessment/skill"
+                    className="group p-6 border border-blue-200 rounded-xl hover:border-blue-400 transition-all duration-200 hover:shadow-lg bg-gradient-to-br from-white to-blue-50/50"
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="p-3 bg-blue-100 rounded-xl group-hover:bg-blue-200 transition-colors">
+                        <ClipboardCheck className="w-8 h-8 text-blue-600" />
+                      </div>
+                      <ArrowUpRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                    </div>
+                    <h3 className="font-semibold text-gray-900 mb-2">Take Skills Assessment</h3>
+                    <p className="text-sm text-gray-600">Find what skills you have and what you need to work on.</p>
+                  </Link>
+
                   <Link
                     to="/opportunities"
                     className="group p-6 border border-green-200 rounded-xl hover:border-green-400 transition-all duration-200 hover:shadow-lg bg-gradient-to-br from-white to-green-50/50"

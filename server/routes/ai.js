@@ -71,4 +71,27 @@ router.post("/analyze-assessment", authenticateToken, async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
+
+
+router.post("/improvement", authenticateToken, async (req, res) => {
+  try {
+    const promptData = req.body
+    const response = await fetch("http://localhost:8000/improvement", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(promptData),
+    });
+
+  const result = await response.json()
+
+  console.log(result)
+  res.json(result)
+  }catch(err) {
+    console.log(err)
+    res.status(500).json({ message: "Server error", error: err.message})
+  }
+
+})
+
 export default router
+

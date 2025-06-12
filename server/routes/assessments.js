@@ -300,15 +300,13 @@ router.post("/submit", authenticateToken, async (req, res) => {
 })
 
 // Get user's assessment history
-router.get("/history", authenticateToken, async (req, res) => {
+router.get("/assesment", authenticateToken, async (req, res) => {
   try {
     const userId = req.user.userId
 
-    const assessments = await Assessment.find({ userId })
-      .sort({ createdAt: -1 })
-      .select("type createdAt rawScore normalizedScore status skillsAssessed")
-
-    res.json({ assessments })
+    const assessment = await Assessment.findOne({ userId })
+        
+    res.json({ assessment })
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message })
   }
